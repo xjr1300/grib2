@@ -28,13 +28,8 @@ impl Grib2Reader<File> {
         let file = File::open(path.as_ref())
             .map_err(|_| ReaderError::NotFount(path.as_ref().display().to_string().into()))?;
         let reader = BufReader::new(file);
-
-        // 内部構造体を構築
         let mut inner = Inner::new(reader);
-        // 第0節:指示節 読み込み
-        inner.read_section0()?;
-        // 第1節:識別節 読み込み
-        inner.read_section1()?;
+        inner.read_to_section6()?;
 
         Ok(Grib2Reader { inner })
     }
@@ -54,12 +49,8 @@ where
     ///
     /// `Grib2Reader`
     pub fn new_from_reader(reader: BufReader<R>) -> ReaderResult<Self> {
-        // 内部構造体を構築
         let mut inner = Inner::new(reader);
-        // 第0節:指示節 読み込み
-        inner.read_section0()?;
-        // 第1節:識別節 読み込み
-        inner.read_section1()?;
+        inner.read_to_section6()?;
 
         Ok(Grib2Reader { inner })
     }
@@ -167,7 +158,18 @@ where
         }
     }
 
-    /// 第0節（指示節）を読み込み。
+    fn read_to_section6(&mut self) -> ReaderResult<()> {
+        // 第0節:指示節 読み込み
+        self.read_section0()?;
+        // 第1節:識別節 読み込み
+        self.read_section1()?;
+        // 第2節:地域使用節 読み込み
+        self.read_section2()?;
+
+        Ok(())
+    }
+
+    /// 第0節:指示節を読み込み。
     ///
     /// # 引数
     ///
@@ -228,7 +230,7 @@ where
         Ok(())
     }
 
-    /// 第1節を読み込む。
+    /// 第1節:識別節を読み込む。
     ///
     /// ファイルポインタが、第1節の開始位置にあることを想定している。
     /// 関数終了後、ファイルポインタは第3節の開始位置に移動する。
@@ -324,6 +326,11 @@ where
             ReaderError::ReadError("第1節:資料の種類の読み込みに失敗しました。".into())
         })?);
 
+        Ok(())
+    }
+
+    /// 第2節:地域使用節を読み込む。
+    fn read_section2(&mut self) -> ReaderResult<()> {
         Ok(())
     }
 
