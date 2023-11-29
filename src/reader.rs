@@ -629,6 +629,8 @@ where
         self.read_section6()?;
         // 第7節:資料値節 読み込み
         self.read_section7_outline()?;
+        // 第8節:終端節 読み込み
+        self.read_section8()?;
 
         Ok(())
     }
@@ -1347,6 +1349,24 @@ where
         Ok(())
     }
 
+    /// 第8節:終端節を読み込む。
+    fn read_section8(&mut self) -> ReaderResult<()> {
+        let s = self.read_str(4).map_err(|e| {
+            ReaderError::ReadError(format!("第8節の読み込みに失敗しました。{:?}", e).into())
+        })?;
+        if s != SECTION8_END_MARKER {
+            return Err(ReaderError::ReadError(
+                format!(
+                    "第8節の終了が不正です。ファイルを正確に読み込めなかった可能性があります。expected: {}, actual: {}",
+                    SECTION8_END_MARKER, s
+                )
+                .into(),
+            ));
+        }
+
+        Ok(())
+    }
+
     fn read_str(&mut self, size: usize) -> ReaderResult<String> {
         let mut buf = vec![0; size];
         let read_size = self.reader.read(&mut buf).map_err(|_| {
@@ -1499,6 +1519,10 @@ const BITS_PER_DATA: u8 = 8;
 const SECTION6_LENGTH: u32 = 6;
 /// ビットマップ指示符
 const BITMAP_INDICATOR: u8 = 255;
+
+/// 第8節
+/// 第8節終端のマーカー
+const SECTION8_END_MARKER: &str = "7777";
 
 #[derive(thiserror::Error, Clone, Debug)]
 pub enum ReaderError {
