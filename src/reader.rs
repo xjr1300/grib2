@@ -30,6 +30,7 @@ impl Grib2Reader<File> {
         let reader = BufReader::new(file);
         let mut inner = Inner::new(reader);
         inner.read_to_end()?;
+        inner.move_to_run_length_compressed_octets()?;
 
         Ok(Grib2Reader { inner })
     }
@@ -635,6 +636,20 @@ where
         Ok(())
     }
 
+    /// ファイルの読み込み位置を第7節の先頭に移動する。
+    fn move_to_run_length_compressed_octets(&mut self) -> ReaderResult<()> {
+        let offset = -4 // 第8節
+            - (self.section7_bytes.unwrap() as i64) // 第7節
+            + 4 + 1 + 4 + 2 + 1 + 2 + 2 + 1; // 第7節データ代表値の尺度因子まで
+        self.reader.seek_relative(offset).map_err(|_| {
+            ReaderError::ReadError(
+                "第7節のランレングス圧縮オクテット列の開始位置まで移動できませんでした。".into(),
+            )
+        })?;
+
+        Ok(())
+    }
+
     /// 第0節:指示節を読み込み。
     ///
     /// # 引数
@@ -695,7 +710,7 @@ where
     fn read_section1(&mut self) -> ReaderResult<()> {
         // 節の長さ: 4bytes
         self.validate_u32(
-            SECTION1_LENGTH,
+            SECTION1_BYTES,
             "節の長さ",
             "節の長さの値は{value}でしたが、{expected}でなければなりません。",
         )?;
@@ -773,7 +788,7 @@ where
     fn read_section3(&mut self) -> ReaderResult<()> {
         // 節の長さ: 4バイト
         self.validate_u32(
-            SECTION3_LENGTH,
+            SECTION3_BYTES,
             "節の長さ",
             "節の長さの値は{value}でしたが、{expected}でなければなりません。",
         )?;
@@ -962,7 +977,7 @@ where
         let to_section3_bytes = self.read_bytes;
 
         // 節の長さ: 4バイト
-        let section_length = self.read_u32().map_err(|_| {
+        let section_bytes = self.read_u32().map_err(|_| {
             ReaderError::ReadError("第4節:節の長さの読み込みに失敗しました。".into())
         })?;
 
@@ -1175,12 +1190,12 @@ where
         */
 
         // 検証
-        let bytes = section_length as i64 - (self.read_bytes - to_section3_bytes) as i64;
+        let bytes = section_bytes as i64 - (self.read_bytes - to_section3_bytes) as i64;
         if bytes < 0 {
             return Err(ReaderError::ReadError(
                 format!(
                     "第4節:節の長さが不正、または読み込みに失敗しました。expected: {}, actual: {}",
-                    section_length,
+                    section_bytes,
                     self.read_bytes - to_section3_bytes
                 )
                 .into(),
@@ -1198,7 +1213,7 @@ where
         let to_section4_bytes = self.read_bytes;
 
         // 節の長さ: 4バイト
-        let section_length = self.read_u32().map_err(|_| {
+        let section_bytes = self.read_u32().map_err(|_| {
             ReaderError::ReadError("第5節:節の長さの読み込みに失敗しました。".into())
         })?;
 
@@ -1246,7 +1261,7 @@ where
         })?);
 
         // レベルmに対応するデータ代表値
-        let remaining_bytes = (section_length - (4 + 1 + 4 + 2 + 1 + 2 + 2 + 1)) as u16;
+        let remaining_bytes = (section_bytes - (4 + 1 + 4 + 2 + 1 + 2 + 2 + 1)) as u16;
         let number_of_levels = remaining_bytes / 2;
         let mut level_values = Vec::new();
         for _ in 0..number_of_levels {
@@ -1259,11 +1274,11 @@ where
         self.level_values = Some(level_values);
 
         // 検証
-        if section_length as i64 - (self.read_bytes - to_section4_bytes) as i64 != 0 {
+        if section_bytes as i64 - (self.read_bytes - to_section4_bytes) as i64 != 0 {
             return Err(ReaderError::ReadError(
                 format!(
                     "第4節:節の長さが不正、または読み込みに失敗しました。expected: {}, actual: {}",
-                    section_length,
+                    section_bytes,
                     self.read_bytes - to_section4_bytes
                 )
                 .into(),
@@ -1279,14 +1294,14 @@ where
         let to_section5_bytes = self.read_bytes;
 
         // 節の長さ: 4バイト
-        let section_length = self.read_u32().map_err(|_| {
+        let section_bytes = self.read_u32().map_err(|_| {
             ReaderError::ReadError("第6節:節の長さの読み込みに失敗しました。".into())
         })?;
-        if section_length != SECTION6_LENGTH {
+        if section_bytes != SECTION6_BYTES {
             return Err(ReaderError::ReadError(
                 format!(
                     "第6節:節の長さの読み込みに失敗しました。expected: {}, actual: {}",
-                    SECTION6_LENGTH, section_length
+                    SECTION6_BYTES, section_bytes
                 )
                 .into(),
             ));
@@ -1307,11 +1322,11 @@ where
         )?;
 
         // 検証
-        if section_length as i64 - (self.read_bytes - to_section5_bytes) as i64 != 0 {
+        if section_bytes as i64 - (self.read_bytes - to_section5_bytes) as i64 != 0 {
             return Err(ReaderError::ReadError(
                 format!(
                     "第4節:節の長さが不正、または読み込みに失敗しました。expected: {}, actual: {}",
-                    section_length,
+                    section_bytes,
                     self.read_bytes - to_section5_bytes
                 )
                 .into(),
@@ -1466,7 +1481,7 @@ const GRIB_VERSION: u8 = 2;
 
 /// 第1節
 /// 節の長さ（バイト）
-const SECTION1_LENGTH: u32 = 21;
+const SECTION1_BYTES: u32 = 21;
 /// GRIBマスター表バージョン番号
 const MASTER_TABLE_VERSION: u8 = 2;
 /// GRIB地域表バージョン番号
@@ -1474,7 +1489,7 @@ const LOCAL_TABLE_VERSION: u8 = 1;
 
 /// 第3節
 /// 節の長さ（バイト）
-const SECTION3_LENGTH: u32 = 72;
+const SECTION3_BYTES: u32 = 72;
 /// 格子系定義の出典
 const FRAME_SYSTEM_SOURCE: u8 = 0;
 /// 格子点定義テンプレート番号
@@ -1516,7 +1531,7 @@ const BITS_PER_DATA: u8 = 8;
 
 /// 第6節
 /// 節の長さ（バイト）
-const SECTION6_LENGTH: u32 = 6;
+const SECTION6_BYTES: u32 = 6;
 /// ビットマップ指示符
 const BITMAP_INDICATOR: u8 = 255;
 
