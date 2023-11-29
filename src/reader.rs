@@ -29,7 +29,7 @@ impl Grib2Reader<File> {
             .map_err(|_| ReaderError::NotFount(path.as_ref().display().to_string().into()))?;
         let reader = BufReader::new(file);
         let mut inner = Inner::new(reader);
-        inner.read_to_section6()?;
+        inner.read_to_end()?;
 
         Ok(Grib2Reader { inner })
     }
@@ -50,7 +50,7 @@ where
     /// `Grib2Reader`
     pub fn new_from_reader(reader: BufReader<R>) -> ReaderResult<Self> {
         let mut inner = Inner::new(reader);
-        inner.read_to_section6()?;
+        inner.read_to_end()?;
 
         Ok(Grib2Reader { inner })
     }
@@ -499,7 +499,11 @@ where
     data_scale_factor: Option<u8>,
     /// レベルmに対応するデータ代表値
     /// レベル値と物理値(mm/h)の対応を格納するコレクション
-    pub level_values: Option<Vec<u16>>,
+    level_values: Option<Vec<u16>>,
+    /// 第7節の開始位置
+    section7_position: Option<usize>,
+    /// 第7節の長さ
+    section7_bytes: Option<u32>,
 }
 
 /// `Inner`構造体が実装する符号なし整数を読み込むメソッドに展開するマクロ
@@ -603,10 +607,12 @@ where
             max_level: None,
             data_scale_factor: None,
             level_values: None,
+            section7_position: None,
+            section7_bytes: None,
         }
     }
 
-    fn read_to_section6(&mut self) -> ReaderResult<()> {
+    fn read_to_end(&mut self) -> ReaderResult<()> {
         // 第0節:指示節 読み込み
         self.read_section0()?;
         // 第1節:識別節 読み込み
@@ -619,6 +625,10 @@ where
         self.read_section4()?;
         // 第5節:資料表現節 読み込み
         self.read_section5()?;
+        // 第6節:ビットマップ節 読み込み
+        self.read_section6()?;
+        // 第7節:資料値節 読み込み
+        self.read_section7_outline()?;
 
         Ok(())
     }
@@ -1261,6 +1271,82 @@ where
         Ok(())
     }
 
+    /// 第6節:ビットマップ節を読み込む。
+    fn read_section6(&mut self) -> ReaderResult<()> {
+        // 第5節までの読み込んだバイト数を記憶
+        let to_section5_bytes = self.read_bytes;
+
+        // 節の長さ: 4バイト
+        let section_length = self.read_u32().map_err(|_| {
+            ReaderError::ReadError("第6節:節の長さの読み込みに失敗しました。".into())
+        })?;
+        if section_length != SECTION6_LENGTH {
+            return Err(ReaderError::ReadError(
+                format!(
+                    "第6節:節の長さの読み込みに失敗しました。expected: {}, actual: {}",
+                    SECTION6_LENGTH, section_length
+                )
+                .into(),
+            ));
+        }
+
+        // 節番号: 1バイト
+        self.validate_u8(
+            6,
+            "節番号",
+            "節番号の値は{value}でしたが、{expected}でなければなりません。",
+        )?;
+
+        // ビットマップ指示符: 1バイト
+        self.validate_u8(
+            BITMAP_INDICATOR,
+            "ビットマップ指示符",
+            "ビットマップ指示符の値は{value}でしたが、{expected}でなければなりません。",
+        )?;
+
+        // 検証
+        if section_length as i64 - (self.read_bytes - to_section5_bytes) as i64 != 0 {
+            return Err(ReaderError::ReadError(
+                format!(
+                    "第4節:節の長さが不正、または読み込みに失敗しました。expected: {}, actual: {}",
+                    section_length,
+                    self.read_bytes - to_section5_bytes
+                )
+                .into(),
+            ));
+        }
+
+        Ok(())
+    }
+
+    /// 第7節:資料節を読み込む。
+    fn read_section7_outline(&mut self) -> ReaderResult<()> {
+        // 第7節の開始位置
+        self.section7_position = Some(self.read_bytes);
+
+        // 節の長さ: 4バイト
+        self.section7_bytes = Some(self.read_u32().map_err(|_| {
+            ReaderError::ReadError("第7節:節の長さの読み込みに失敗しました。".into())
+        })?);
+
+        // 節番号: 1バイト
+        self.validate_u8(
+            7,
+            "節番号",
+            "節番号の値は{value}でしたが、{expected}でなければなりません。",
+        )?;
+
+        // ランレングス圧縮オクテット列をスキップ
+        let skip_bytes = self.section7_bytes.unwrap() - (4 + 1);
+        self.seek_relative(skip_bytes as i64).map_err(|_| {
+            ReaderError::ReadError(
+                "第7節:ランレングス圧縮オクテット列の読み飛ばしに失敗しました。".into(),
+            )
+        })?;
+
+        Ok(())
+    }
+
     fn read_str(&mut self, size: usize) -> ReaderResult<String> {
         let mut buf = vec![0; size];
         let read_size = self.reader.read(&mut buf).map_err(|_| {
@@ -1407,6 +1493,12 @@ const MESO_MODEL_RATIO_SCALE_FACTOR: u8 = 0;
 const DATA_REPRESENTATION_TEMPLATE: u16 = 200;
 /// 1データのビット数
 const BITS_PER_DATA: u8 = 8;
+
+/// 第6節
+/// 節の長さ（バイト）
+const SECTION6_LENGTH: u32 = 6;
+/// ビットマップ指示符
+const BITMAP_INDICATOR: u8 = 255;
 
 #[derive(thiserror::Error, Clone, Debug)]
 pub enum ReaderError {
