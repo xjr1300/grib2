@@ -90,6 +90,87 @@ where
     pub fn document_kind(&self) -> u8 {
         self.inner.document_kind.unwrap()
     }
+
+    /// 資料点数を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 資料点数
+    pub fn number_of_points(&self) -> u32 {
+        self.inner.number_of_points.unwrap()
+    }
+
+    /// 緯線に沿った格子点数を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 緯線に沿った格子点数
+    pub fn number_of_points_lat(&self) -> u32 {
+        self.inner.number_of_points_lat.unwrap()
+    }
+
+    /// 経線に沿った格子点数を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 経線に沿った格子点数
+    pub fn number_of_points_lon(&self) -> u32 {
+        self.inner.number_of_points_lon.unwrap()
+    }
+
+    /// 最初の格子点の緯度（10e-6度単位）を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 最初の格子点の緯度（10e-6度単位）
+    pub fn first_point_lat(&self) -> u32 {
+        self.inner.first_point_lat.unwrap()
+    }
+
+    /// 最初の格子点の経度（10e-6度単位）を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 最初の格子点の経度（10e-6度単位）
+    pub fn first_point_lon(&self) -> u32 {
+        self.inner.first_point_lon.unwrap()
+    }
+
+    /// 最後の格子点の緯度（10e-6度単位）を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 最後の格子点の緯度（10e-6度単位）
+    pub fn last_point_lat(&self) -> u32 {
+        self.inner.last_point_lat.unwrap()
+    }
+
+    /// 最後の格子点の経度（10e-6度単位）を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 最後の格子点の経度（10e-6度単位）
+    pub fn last_point_lon(&self) -> u32 {
+        self.inner.last_point_lon.unwrap()
+    }
+
+    /// i方向（経度方向）の増分（10e-6度単位）を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// i方向（経度方向）の増分（10e-6度単位）
+    pub fn increment_lon(&self) -> u32 {
+        self.inner.increment_lon.unwrap()
+    }
+
+    /// j方向（緯度方向）の増分（10e-6度単位）を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// j方向（緯度方向）の増分（10e-6度単位）
+    pub fn increment_lat(&self) -> u32 {
+        self.inner.increment_lat.unwrap()
+    }
 }
 
 /// Grib2Readerの内部構造体
@@ -109,6 +190,24 @@ where
     creation_status: Option<u8>,
     /// 資料の種類
     document_kind: Option<u8>,
+    /// 資料点数
+    number_of_points: Option<u32>,
+    /// 緯線に沿った格子点数
+    number_of_points_lat: Option<u32>,
+    /// 経線に沿った格子点数
+    number_of_points_lon: Option<u32>,
+    /// 最初の格子点の緯度（10e-6度単位）
+    first_point_lat: Option<u32>,
+    /// 最初の格子点の経度（10e-6度単位）
+    first_point_lon: Option<u32>,
+    /// 最後の格子点の緯度（10e-6度単位）
+    last_point_lat: Option<u32>,
+    /// 最後の格子点の経度（10e-6度単位）
+    last_point_lon: Option<u32>,
+    /// i方向（経度方向）の増分（10e-6度単位）
+    increment_lon: Option<u32>,
+    /// j方向（緯度方向）の増分（10e-6度単位）
+    increment_lat: Option<u32>,
 }
 
 /// `Inner`構造体が実装する符号なし整数を読み込むメソッドに展開するマクロ
@@ -134,6 +233,28 @@ macro_rules! read_uint {
     };
 }
 
+/// `Inner`構造体が実装する読み込んだ符号なし整数を検証するメソッドに展開するマクロ
+macro_rules! validate_uint {
+    ($fname:ident, $read_fn:ident, $type:ty, $name:ident, $fmt:ident) => {
+        fn $fname(&mut self, expected: $type, $name: &str, fmt: &str) -> ReaderResult<()>
+        where
+            R: Read,
+        {
+            let value = self.$read_fn().map_err(|_| {
+                ReaderError::ReadError(format!("{}の読み込みに失敗しました。", $name).into())
+            })?;
+            if value != expected {
+                let msg = fmt
+                    .replace("{value}", &value.to_string())
+                    .replace("{expected}", &expected.to_string());
+                return Err(ReaderError::Unexpected(msg.into()));
+            }
+
+            Ok(())
+        }
+    };
+}
+
 impl<R> Inner<R>
 where
     R: Read + Seek,
@@ -155,6 +276,15 @@ where
             referenced_at: None,
             creation_status: None,
             document_kind: None,
+            number_of_points: None,
+            number_of_points_lat: None,
+            number_of_points_lon: None,
+            first_point_lat: None,
+            first_point_lon: None,
+            last_point_lat: None,
+            last_point_lon: None,
+            increment_lon: None,
+            increment_lat: None,
         }
     }
 
@@ -165,6 +295,8 @@ where
         self.read_section1()?;
         // 第2節:地域使用節 読み込み
         self.read_section2()?;
+        // 第3節:格子系定義節 読み込み
+        self.read_section3()?;
 
         Ok(())
     }
@@ -195,32 +327,18 @@ where
         })?;
 
         // 資料分野: 1バイト
-        let discipline = self.read_u8().map_err(|_| {
-            ReaderError::ReadError("第0節:資料分野の読み込みに失敗しました。".into())
-        })?;
-        if discipline != DOCUMENT_DOMAIN {
-            return Err(ReaderError::Unexpected(
-                format!(
-                    "第0節:資料分野の値は{0}でなければなりません。",
-                    DOCUMENT_DOMAIN
-                )
-                .into(),
-            ));
-        }
+        self.validate_u8(
+            DOCUMENT_DOMAIN,
+            "資料分野",
+            "資料分野の値は{value}でしたが、{expected}でなければなりません。",
+        )?;
 
         // GRIB版番号: 1バイト
-        let version = self.read_u8().map_err(|_| {
-            ReaderError::ReadError("第0節:GRIB版番号の読み込みに失敗しました。".into())
-        })?;
-        if version != GRIB_VERSION {
-            return Err(ReaderError::Unexpected(
-                format!(
-                    "第0節:GRIB版番号の値は{0}でなければなりません。",
-                    GRIB_VERSION
-                )
-                .into(),
-            ));
-        }
+        self.validate_u8(
+            GRIB_VERSION,
+            "GRIB版番号",
+            "GRIB版番号の値は{value}でしたが、{expected}でなければなりません。",
+        )?;
 
         // GRIB報全体の長さ: 8バイト
         self.total_bytes = Some(self.read_u64().map_err(|_| {
@@ -237,32 +355,18 @@ where
     /// なお、実装時点で、第2節は省略されている。
     fn read_section1(&mut self) -> ReaderResult<()> {
         // 節の長さ: 4bytes
-        let section_length = self.read_u32().map_err(|_| {
-            ReaderError::ReadError("第1節:節の長さの読み込みに失敗しました。".into())
-        })?;
-        if section_length != SECTION1_LENGTH {
-            return Err(ReaderError::Unexpected(
-                format!(
-                    "第1節:節番号の値は{}でしたが、{}でなければなりません。",
-                    section_length, SECTION1_LENGTH,
-                )
-                .into(),
-            ));
-        }
+        self.validate_u32(
+            SECTION1_LENGTH,
+            "節の長さ",
+            "節の長さの値は{value}でしたが、{expected}でなければなりません。",
+        )?;
 
         // 節番号
-        let section_number = self
-            .read_u8()
-            .map_err(|_| ReaderError::ReadError("第1節:節番号の読み込みに失敗しました。".into()))?;
-        if section_number != 1 {
-            return Err(ReaderError::Unexpected(
-                format!(
-                    "第1節:節番号の値は{}でしたが、1でなければなりません。",
-                    section_number
-                )
-                .into(),
-            ));
-        }
+        self.validate_u8(
+            1,
+            "節番号",
+            "節番号の値は{value}でしたが、1でなければなりません。",
+        )?;
 
         // 作成中枢の識別: 2bytes
         self.seek_relative(2).map_err(|_| {
@@ -275,36 +379,18 @@ where
         })?;
 
         // GRIBマスター表バージョン番号: 1byte
-        let master_table_version = self.read_u8().map_err(|_| {
-            ReaderError::ReadError(
-                "第1節:GRIBマスター表バージョン番号の読み込みに失敗しました。".into(),
-            )
-        })?;
-        if master_table_version != MASTER_TABLE_VERSION {
-            return Err(ReaderError::Unexpected(
-                format!(
-                    "第1節:GRIBマスター表バージョン番号は{}でしたが、{}でなければなりません。",
-                    master_table_version, MASTER_TABLE_VERSION,
-                )
-                .into(),
-            ));
-        }
+        self.validate_u8(
+            MASTER_TABLE_VERSION,
+            "GRIBマスター表バージョン番号",
+            "GRIBマスター表バージョン番号の値は{value}でしたが、{expected}でなければなりません。",
+        )?;
 
         // GRIB地域表バージョン番号: 1byte
-        let local_table_version = self.read_u8().map_err(|_| {
-            ReaderError::ReadError(
-                "第1節:GRIB地域表バージョン番号の読み込みに失敗しました。".into(),
-            )
-        })?;
-        if local_table_version != LOCAL_TABLE_VERSION {
-            return Err(ReaderError::Unexpected(
-                format!(
-                    "第1節:GRIB地域表バージョン番号は{}でしたが、{}でなければなりません。",
-                    local_table_version, LOCAL_TABLE_VERSION,
-                )
-                .into(),
-            ));
-        }
+        self.validate_u8(
+            LOCAL_TABLE_VERSION,
+            "GRIB地域表バージョン番号",
+            "GRIB地域表バージョン番号の値は{value}でしたが、{expected}でなければなりません。",
+        )?;
 
         // 参照時刻の意味: 1byte
         self.seek_relative(1).map_err(|_| {
@@ -333,6 +419,200 @@ where
     fn read_section2(&mut self) -> ReaderResult<()> {
         Ok(())
     }
+
+    /// 第3節:格子系定義節を読み込む。
+    fn read_section3(&mut self) -> ReaderResult<()> {
+        // 節の長さ: 4バイト
+        self.validate_u32(
+            SECTION3_LENGTH,
+            "節の長さ",
+            "節の長さの値は{value}でしたが、{expected}でなければなりません。",
+        )?;
+
+        // 節番号: 1バイト
+        self.validate_u8(
+            3,
+            "節番号",
+            "節番号の値は{value}でしたが、3でなければなりません。",
+        )?;
+
+        // 格子系定義の出典: 1バイト
+        self.validate_u8(
+            FRAME_SYSTEM_SOURCE,
+            "格子系定義の出典",
+            "格子系定義の出典の値は{value}でしたが、{expected}でなければなりません。",
+        )?;
+
+        // 資料点数: 4バイト
+        self.number_of_points = Some(self.read_u32().map_err(|_| {
+            ReaderError::ReadError("第3節:格子点数の読み込みに失敗しました。".into())
+        })?);
+
+        // 格子点数を定義するリストのオクテット数: 1バイト
+        self.validate_u8(
+            0,
+            "格子点数を定義するリストのオクテット数",
+            "格子点数を定義するリストのオクテット数の値は{value}でしたが、{expected}でなければなりません。",
+        )?;
+
+        // 格子点数を定義するリストの説明
+        self.validate_u8(
+            0,
+            "格子点数を定義するリストの説明",
+            "格子点数を定義するリストの説明の値は{value}でしたが、{expected}でなければなりません。",
+        )?;
+
+        // 格子系定義テンプレート番号: 2バイト
+        self.validate_u16(
+            FRAME_SYSTEM_TEMPLATE,
+            "格子系定義テンプレート番号",
+            "格子系定義テンプレート番号の値は{value}でしたが、{expected}でなければなりません。",
+        )?;
+
+        // 地球の形状: 1バイト
+        self.validate_u8(
+            EARTH_SHAPE,
+            "地球の形状",
+            "地球の形状の値は{value}でしたが、{expected}でなければなりません。",
+        )?;
+
+        // 地球球体の半径の尺度因子: 1バイト
+        self.seek_relative(1).map_err(|_| {
+            ReaderError::ReadError(
+                "第3節:地球球体の半径の尺度因子の読み飛ばしに失敗しました。".into(),
+            )
+        })?;
+
+        // 地球球体の尺度付き半径: 2バイト
+        self.seek_relative(2).map_err(|_| {
+            ReaderError::ReadError(
+                "第3節:地球球体の尺度付き半径の読み飛ばしに失敗しました。".into(),
+            )
+        })?;
+
+        // 地球回転楕円体の長軸の尺度因子: 1バイト
+        self.validate_u8(
+            EARTH_MAJOR_AXIS_SCALE_FACTOR,
+            "地球回転楕円体の長軸の尺度因子",
+            "地球回転楕円体の長軸の尺度因子の値は{value}でしたが、{expected}でなければなりません。",
+        )?;
+
+        // 地球回転楕円体の長軸の尺度付きの長さ: 4バイト
+        self.validate_u32(
+            EARTH_MAJOR_AXIS_LENGTH,
+            "地球回転楕円体の長軸の尺度付きの長さ",
+            "地球回転楕円体の長軸の尺度付きの長さの値は{value}でしたが、{expected}でなければなりません。",
+        )?;
+
+        // 地球回転楕円体の短軸の尺度因子: 1バイト
+        self.validate_u8(
+            EARTH_MINOR_AXIS_SCALE_FACTOR,
+            "地球回転楕円体の短軸の尺度因子",
+            "地球回転楕円体の短軸の尺度因子の値は{value}でしたが、{expected}でなければなりません。",
+        )?;
+
+        // 地球回転楕円体の短軸の尺度付きの長さ: 4バイト
+        self.validate_u32(
+            EARTH_MINOR_AXIS_LENGTH,
+            "地球回転楕円体の短軸の尺度付きの長さ",
+            "地球回転楕円体の短軸の尺度付きの長さの値は{value}でしたが、{expected}でなければなりません。",
+        )?;
+
+        // 緯線に沿った格子点数: 4バイト
+        self.number_of_points_lat = Some(self.read_u32().map_err(|_| {
+            ReaderError::ReadError("第3節:緯線に沿った格子点数の読み込みに失敗しました。".into())
+        })?);
+
+        // 経線に沿った格子点数: 4バイト
+        self.number_of_points_lon = Some(self.read_u32().map_err(|_| {
+            ReaderError::ReadError("第3節:経線に沿った格子点数の読み込みに失敗しました。".into())
+        })?);
+
+        // 原作成領域の基本角: 4バイト
+        self.validate_u32(
+            BASIC_ANGLE_OF_ORIGINAL_AREA,
+            "原作成領域の基本角",
+            "原作成領域の基本角の値は{value}でしたが、{expected}でなければなりません。",
+        )?;
+
+        // 端点の経度及び緯度並びに方向増分の定義に使われる基本角の細分: 4バイト
+        self.seek_relative(4).map_err(|_| {
+            ReaderError::ReadError(
+                "第3節:端点の経度及び緯度並びに方向増分の定義に使われる基本角の細分の読み飛ばしに失敗しました。"
+                    .into(),
+            )
+        })?;
+
+        // 最初の格子点の緯度（10e-6度単位）: 4バイト
+        self.first_point_lat = Some(self.read_u32().map_err(|_| {
+            ReaderError::ReadError(
+                "第3節:最初の格子点の緯度（10e-6度単位）の読み込みに失敗しました。".into(),
+            )
+        })?);
+
+        // 最初の格子点の経度（10e-6度単位）: 4バイト
+        self.first_point_lon = Some(self.read_u32().map_err(|_| {
+            ReaderError::ReadError(
+                "第3節:最初の格子点の経度（10e-6度単位）の読み込みに失敗しました。".into(),
+            )
+        })?);
+
+        // 分解能及び成分フラグ: 1バイト
+        self.validate_u8(
+            RESOLUTION_AND_COMPONENT_FLAG,
+            "分解能及び成分フラグ",
+            "分解能及び成分フラグの値は{value}でしたが、{expected}でなければなりません。",
+        )?;
+
+        // 最後の格子点の緯度（10e-6度単位）: 4バイト
+        self.last_point_lat = Some(self.read_u32().map_err(|_| {
+            ReaderError::ReadError(
+                "第3節:最後の格子点の緯度（10e-6度単位）の読み込みに失敗しました。".into(),
+            )
+        })?);
+
+        // 最後の格子点の経度（10e-6度単位）: 4バイト
+        self.last_point_lon = Some(self.read_u32().map_err(|_| {
+            ReaderError::ReadError(
+                "第3節:最後の格子点の経度（10e-6度単位）の読み込みに失敗しました。".into(),
+            )
+        })?);
+
+        // i方向（経度方向）の増分（10e-6度単位）: 4バイト
+        self.increment_lon = Some(self.read_u32().map_err(|_| {
+            ReaderError::ReadError(
+                "第3節:i方向（経度方向）の増分（10e-6度単位）の読み込みに失敗しました。".into(),
+            )
+        })?);
+
+        // j方向（緯度方向）の増分（10e-6度単位）: 4バイト
+        self.increment_lat = Some(self.read_u32().map_err(|_| {
+            ReaderError::ReadError(
+                "第3節:j方向（緯度方向）の増分（10e-6度単位）の読み込みに失敗しました。".into(),
+            )
+        })?);
+
+        // 走査モード: 1バイト
+        self.validate_u8(
+            SCAN_MODE,
+            "走査モード",
+            "走査モードの値は{value}でしたが、{expected}でなければなりません。",
+        )?;
+
+        Ok(())
+    }
+
+    // fn validate_u32(&mut self, expected: u32, fmt: &str) -> ReaderResult<()> {
+    //     let value = self.read_u32()?;
+    //     if value != expected {
+    //         let msg = fmt
+    //             .replace("{value}", &value.to_string())
+    //             .replace("{expected}", &expected.to_string());
+    //         return Err(ReaderError::Unexpected(msg.into()));
+    //     }
+
+    //     Ok(())
+    // }
 
     fn read_str(&mut self, size: usize) -> ReaderResult<String> {
         let mut buf = vec![0; size];
@@ -398,6 +678,11 @@ where
     read_uint!(read_u32, u32, 4);
     read_uint!(read_u64, u64, 8);
 
+    validate_uint!(validate_u8, read_u8, u8, name, fmt);
+    validate_uint!(validate_u16, read_u16, u16, name, fmt);
+    validate_uint!(validate_u32, read_u32, u32, name, fmt);
+    // validate_uint!(validate_u64, read_u64, u64, name, fmt);
+
     /// ファイルを指定されたバイト数読み飛ばす。
     ///
     /// # 引数
@@ -428,6 +713,30 @@ const SECTION1_LENGTH: u32 = 21;
 const MASTER_TABLE_VERSION: u8 = 2;
 /// GRIB地域表バージョン番号
 const LOCAL_TABLE_VERSION: u8 = 1;
+
+/// 第3節
+/// 節の長さ（バイト）
+const SECTION3_LENGTH: u32 = 28;
+/// 格子系定義の出典
+const FRAME_SYSTEM_SOURCE: u8 = 0;
+/// 格子点定義テンプレート番号
+const FRAME_SYSTEM_TEMPLATE: u16 = 0;
+/// 地球の形状
+const EARTH_SHAPE: u8 = 4;
+/// 地球回転楕円体の長軸の尺度因子
+const EARTH_MAJOR_AXIS_SCALE_FACTOR: u8 = 1;
+/// 地球回転楕円体の長軸の尺度付きの長さ
+const EARTH_MAJOR_AXIS_LENGTH: u32 = 63_781_370;
+/// 地球回転楕円体の短軸の尺度因子
+const EARTH_MINOR_AXIS_SCALE_FACTOR: u8 = 1;
+/// 地球回転楕円体の短軸の尺度付きの長さ
+const EARTH_MINOR_AXIS_LENGTH: u32 = 63_567_523;
+/// 原作成領域の基本角
+const BASIC_ANGLE_OF_ORIGINAL_AREA: u32 = 0;
+/// 分解能及び成分フラグ
+const RESOLUTION_AND_COMPONENT_FLAG: u8 = 0x30;
+/// 走査モード
+const SCAN_MODE: u8 = 0x00;
 
 #[derive(thiserror::Error, Clone, Debug)]
 pub enum ReaderError {
