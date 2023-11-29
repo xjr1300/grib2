@@ -371,6 +371,42 @@ where
     pub fn total_number_of_points(&self) -> u32 {
         self.inner.total_number_of_points.unwrap()
     }
+
+    /// 今回の圧縮に用いたレベルの最大値を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 圧縮に用いたレベルの最大値
+    pub fn compression_max_level(&self) -> u16 {
+        self.inner.compression_max_level.unwrap()
+    }
+
+    /// レベルの最大値を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// レベルの最大値
+    pub fn max_level(&self) -> u16 {
+        self.inner.max_level.unwrap()
+    }
+
+    /// データ代表値の尺度因子を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// データ代表値の尺度因子
+    pub fn data_scale_factor(&self) -> u8 {
+        self.inner.data_scale_factor.unwrap()
+    }
+
+    /// レベルmに対応するデータ代表値を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// レベル値と物理値(mm/h)の対応を格納するコレクション
+    pub fn level_values(&self) -> &[u16] {
+        self.inner.level_values.as_ref().unwrap()
+    }
 }
 
 /// Grib2Readerの内部構造体
@@ -455,6 +491,15 @@ where
     */
     /// 第5節に記録されている全資料点の数
     total_number_of_points: Option<u32>,
+    /// 今回の圧縮に用いたレベルの最大値
+    compression_max_level: Option<u16>,
+    /// レベルの最大値
+    max_level: Option<u16>,
+    /// データ代表値の尺度因子
+    data_scale_factor: Option<u8>,
+    /// レベルmに対応するデータ代表値
+    /// レベル値と物理値(mm/h)の対応を格納するコレクション
+    pub level_values: Option<Vec<u16>>,
 }
 
 /// `Inner`構造体が実装する符号なし整数を読み込むメソッドに展開するマクロ
@@ -554,6 +599,10 @@ where
             meso_model_area_ratio: None,
             */
             total_number_of_points: None,
+            compression_max_level: None,
+            max_level: None,
+            data_scale_factor: None,
+            level_values: None,
         }
     }
 
@@ -568,6 +617,8 @@ where
         self.read_section3()?;
         // 第4節:プロダクト定義節 読み込み
         self.read_section4()?;
+        // 第5節:資料表現節 読み込み
+        self.read_section5()?;
 
         Ok(())
     }
@@ -1129,6 +1180,87 @@ where
         Ok(())
     }
 
+    /// 第5節:資料表現節を読み込み。
+    fn read_section5(&mut self) -> ReaderResult<()> {
+        // 第4節までの読み込んだバイト数を記憶
+        let to_section4_bytes = self.read_bytes;
+
+        // 節の長さ: 4バイト
+        let section_length = self.read_u32().map_err(|_| {
+            ReaderError::ReadError("第5節:節の長さの読み込みに失敗しました。".into())
+        })?;
+
+        // 節番号: 1バイト
+        self.validate_u8(
+            5,
+            "節番号",
+            "節番号の値は{value}でしたが、{expected}でなければなりません。",
+        )?;
+
+        // 全資料点の数: 4バイト
+        self.total_number_of_points = Some(self.read_u32().map_err(|_| {
+            ReaderError::ReadError("第5節:全資料点の数の読み込みに失敗しました。".into())
+        })?);
+
+        // 資料表現テンプレート番号: 2バイト
+        self.validate_u16(
+            DATA_REPRESENTATION_TEMPLATE,
+            "資料表現テンプレート番号",
+            "資料表現テンプレート番号の値は{value}でしたが、{expected}でなければなりません。",
+        )?;
+
+        // 1データのビット数: 1バイト
+        self.validate_u8(
+            BITS_PER_DATA,
+            "1データのビット数",
+            "1データのビット数の値は{value}でしたが、{expected}でなければなりません。",
+        )?;
+
+        // 今回の圧縮に用いたレベルの最大値: 2バイト
+        self.compression_max_level = Some(self.read_u16().map_err(|_| {
+            ReaderError::ReadError(
+                "第5節:今回の圧縮に用いたレベルの最大値の読み込みに失敗しました。".into(),
+            )
+        })?);
+
+        // レベルの最大値: 2バイト
+        self.max_level = Some(self.read_u16().map_err(|_| {
+            ReaderError::ReadError("第5節:レベルの最大値の読み込みに失敗しました。".into())
+        })?);
+
+        // データ代表値の尺度因子: 1バイト
+        self.data_scale_factor = Some(self.read_u8().map_err(|_| {
+            ReaderError::ReadError("第5節:データ代表値の尺度因子の読み込みに失敗しました。".into())
+        })?);
+
+        // レベルmに対応するデータ代表値
+        let remaining_bytes = (section_length - (4 + 1 + 4 + 2 + 1 + 2 + 2 + 1)) as u16;
+        let number_of_levels = remaining_bytes / 2;
+        let mut level_values = Vec::new();
+        for _ in 0..number_of_levels {
+            level_values.push(self.read_u16().map_err(|_| {
+                ReaderError::ReadError(
+                    "第5節:レベルmに対応するデータ代表値の読み込みに失敗しました。".into(),
+                )
+            })?);
+        }
+        self.level_values = Some(level_values);
+
+        // 検証
+        if section_length as i64 - (self.read_bytes - to_section4_bytes) as i64 != 0 {
+            return Err(ReaderError::ReadError(
+                format!(
+                    "第4節:節の長さが不正、または読み込みに失敗しました。expected: {}, actual: {}",
+                    section_length,
+                    self.read_bytes - to_section4_bytes
+                )
+                .into(),
+            ));
+        }
+
+        Ok(())
+    }
+
     fn read_str(&mut self, size: usize) -> ReaderResult<String> {
         let mut buf = vec![0; size];
         let read_size = self.reader.read(&mut buf).map_err(|_| {
@@ -1269,6 +1401,12 @@ const TOTAL_NUMBER_OF_MISSING_DATA_VALUES: u32 = 0;
 /// メソモデル予想値の結合比率の尺度因子
 const MESO_MODEL_RATIO_SCALE_FACTOR: u8 = 0;
 */
+
+/// 第5節
+/// 資料表現テンプレート番号
+const DATA_REPRESENTATION_TEMPLATE: u16 = 200;
+/// 1データのビット数
+const BITS_PER_DATA: u8 = 8;
 
 #[derive(thiserror::Error, Clone, Debug)]
 pub enum ReaderError {
