@@ -6,8 +6,8 @@ use std::str;
 use num_format::{Locale, ToFormattedString};
 use time::{Date, Month, PrimitiveDateTime, Time};
 
+use super::grib2_value_iter::Grib2ValueIter;
 use super::{FileReader, ReaderError, ReaderResult};
-use crate::reader::grib2_value_iter::Grib2ValueIter;
 
 /// Grib2Reader
 pub struct Grib2Reader<P>
@@ -1159,10 +1159,16 @@ impl Inner {
             ReaderError::ReadError("第0節:GRIB報全体の長さの読み込みに失敗しました。".into())
         })? as usize);
 
-        assert_eq!(
-            16, self.read_bytes,
-            "第0節読み込み終了時点で読み込んだサイズが誤っている。"
-        );
+        // 検証
+        if SECTION0_BYTES != self.read_bytes {
+            return Err(ReaderError::ReadError(
+                format!(
+                    "第0節で読み込んだサイズ({})と定義({})が異なります。",
+                    self.read_bytes, SECTION0_BYTES
+                )
+                .into(),
+            ));
+        }
 
         Ok(())
     }
@@ -1173,13 +1179,15 @@ impl Inner {
     /// 関数終了後、ファイルポインタは第3節の開始位置に移動する。
     /// なお、実装時点で、第2節は省略されている。
     fn read_section1(&mut self, reader: &mut FileReader) -> ReaderResult<()> {
+        let to_section0_bytes = self.read_bytes;
+
         // 節の長さ: 4bytes
-        self.validate_u32(
+        let section_bytes = self.validate_u32(
             reader,
             SECTION1_BYTES,
             "節の長さ",
             "節の長さの値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        )? as usize;
 
         // 節番号
         self.validate_u8(
@@ -1235,33 +1243,37 @@ impl Inner {
             ReaderError::ReadError("第1節:資料の種類の読み込みに失敗しました。".into())
         })?);
 
-        assert_eq!(
-            37, self.read_bytes,
-            "第1節読み込み終了時点で読み込んだサイズが誤っている。"
-        );
+        // 検証
+        let section_read_bytes = self.read_bytes - to_section0_bytes;
+        if section_bytes != section_read_bytes {
+            return Err(ReaderError::ReadError(
+                format!(
+                    "第1節で読み込んだサイズ({})と定義({})が異なります。",
+                    section_read_bytes, section_bytes
+                )
+                .into(),
+            ));
+        }
 
         Ok(())
     }
 
     /// 第2節:地域使用節を読み込む。
     fn read_section2(&mut self, _reader: &mut FileReader) -> ReaderResult<()> {
-        assert_eq!(
-            37, self.read_bytes,
-            "第2節読み込み終了時点で読み込んだサイズが誤っている。"
-        );
-
         Ok(())
     }
 
     /// 第3節:格子系定義節を読み込む。
     fn read_section3(&mut self, reader: &mut FileReader) -> ReaderResult<()> {
+        let to_section2_bytes = self.read_bytes;
+
         // 節の長さ: 4バイト
-        self.validate_u32(
+        let section_bytes = self.validate_u32(
             reader,
             SECTION3_BYTES,
             "節の長さ",
             "節の長さの値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        )? as usize;
 
         // 節番号: 1バイト
         self.validate_u8(
@@ -1446,10 +1458,16 @@ impl Inner {
             "走査モードの値は{value}でしたが、{expected}でなければなりません。",
         )?);
 
-        assert_eq!(
-            109, self.read_bytes,
-            "第3節読み込み終了時点で読み込んだサイズが誤っている。"
-        );
+        let section_read_bytes = self.read_bytes - to_section2_bytes;
+        if section_bytes != section_read_bytes {
+            return Err(ReaderError::ReadError(
+                format!(
+                    "第3節で読み込んだサイズ({})と定義({})が異なります。",
+                    section_read_bytes, section_bytes
+                )
+                .into(),
+            ));
+        }
 
         Ok(())
     }
@@ -1462,7 +1480,7 @@ impl Inner {
         // 節の長さ: 4バイト
         let section_bytes = self.read_u32(reader).map_err(|_| {
             ReaderError::ReadError("第4節:節の長さの読み込みに失敗しました。".into())
-        })?;
+        })? as usize;
 
         // 節番号: 1バイト
         self.validate_u8(
@@ -1679,19 +1697,16 @@ impl Inner {
         }
 
         // 検証
-        let bytes = section_bytes as i64 - (self.read_bytes - to_section3_bytes) as i64;
-        if bytes < 0 {
+        let section_read_bytes = self.read_bytes - to_section3_bytes;
+        if section_bytes != section_read_bytes {
             return Err(ReaderError::ReadError(
                 format!(
-                    "第4節:節の長さが不正、または読み込みに失敗しました。expected: {}, actual: {}",
-                    section_bytes,
-                    self.read_bytes - to_section3_bytes
+                    "第4節で読み込んだサイズ({})と定義({})が異なります。",
+                    section_read_bytes, section_bytes
                 )
                 .into(),
             ));
         }
-        self.seek_relative(reader, bytes)
-            .map_err(|_| ReaderError::ReadError("第4節の読み込みに失敗しました。".into()))?;
 
         Ok(())
     }
@@ -1704,7 +1719,7 @@ impl Inner {
         // 節の長さ: 4バイト
         let section_bytes = self.read_u32(reader).map_err(|_| {
             ReaderError::ReadError("第5節:節の長さの読み込みに失敗しました。".into())
-        })?;
+        })? as usize;
 
         // 節番号: 1バイト
         self.validate_u8(
@@ -1763,12 +1778,12 @@ impl Inner {
         self.level_values = Some(level_values);
 
         // 検証
-        if section_bytes as i64 - (self.read_bytes - to_section4_bytes) as i64 != 0 {
+        let section_read_bytes = self.read_bytes - to_section4_bytes;
+        if section_bytes != section_read_bytes {
             return Err(ReaderError::ReadError(
                 format!(
-                    "第4節:節の長さが不正、または読み込みに失敗しました。expected: {}, actual: {}",
-                    section_bytes,
-                    self.read_bytes - to_section4_bytes
+                    "第5節で読み込んだサイズ({})と定義({})が異なります。",
+                    section_read_bytes, section_bytes
                 )
                 .into(),
             ));
@@ -1783,18 +1798,12 @@ impl Inner {
         let to_section5_bytes = self.read_bytes;
 
         // 節の長さ: 4バイト
-        let section_bytes = self.read_u32(reader).map_err(|_| {
-            ReaderError::ReadError("第6節:節の長さの読み込みに失敗しました。".into())
-        })?;
-        if section_bytes != SECTION6_BYTES {
-            return Err(ReaderError::ReadError(
-                format!(
-                    "第6節:節の長さの読み込みに失敗しました。expected: {}, actual: {}",
-                    SECTION6_BYTES, section_bytes
-                )
-                .into(),
-            ));
-        }
+        let section_bytes = self.validate_u32(
+            reader,
+            SECTION6_BYTES,
+            "節の長さ",
+            "節の長さの値は{value}でしたが、{expected}でなければなりません。",
+        )? as usize;
 
         // 節番号: 1バイト
         self.validate_u8(
@@ -1813,12 +1822,12 @@ impl Inner {
         )?);
 
         // 検証
-        if section_bytes as i64 - (self.read_bytes - to_section5_bytes) as i64 != 0 {
+        let section_read_bytes = self.read_bytes - to_section5_bytes;
+        if section_bytes != section_read_bytes {
             return Err(ReaderError::ReadError(
                 format!(
-                    "第4節:節の長さが不正、または読み込みに失敗しました。expected: {}, actual: {}",
-                    section_bytes,
-                    self.read_bytes - to_section5_bytes
+                    "第6節で読み込んだサイズ({})と定義({})が異なります。",
+                    section_read_bytes, section_bytes
                 )
                 .into(),
             ));
@@ -1967,6 +1976,8 @@ impl Inner {
 }
 
 /// 第0節
+/// 節の長さ
+const SECTION0_BYTES: usize = 16;
 /// 資料分野: 気象分野
 const DOCUMENT_DOMAIN: u8 = 0;
 /// GRIB版番号
