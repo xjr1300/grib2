@@ -6,8 +6,8 @@ use std::str;
 use num_format::{Locale, ToFormattedString};
 use time::{Date, Month, PrimitiveDateTime, Time};
 
+use super::grib2_value_iter::Grib2ValueIter;
 use super::{FileReader, ReaderError, ReaderResult};
-use crate::reader::grib2_value_iter::Grib2ValueIter;
 
 /// Grib2Reader
 pub struct Grib2Reader<P>
