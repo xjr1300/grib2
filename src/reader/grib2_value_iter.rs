@@ -34,10 +34,10 @@ pub struct Grib2ValueIter<'a> {
     current_lon: u32,
     /// 現在のレベル値
     current_level: u16,
-    /// 現在の値を繰り返す回数
-    current_times: u32,
     /// 現在の物理値
     current_value: Option<u16>,
+    /// 現在値を返却する回数
+    returning_times: u32,
     /// 読み込んだ座標数
     number_of_reads: u32,
 }
@@ -83,8 +83,8 @@ impl<'a> Grib2ValueIter<'a> {
             current_lat: lat_max,
             current_lon: lon_min,
             current_level: 0,
-            current_times: 0,
             current_value: None,
+            returning_times: 0,
             number_of_reads: 0,
         }
     }
@@ -128,10 +128,8 @@ impl<'a> Iterator for Grib2ValueIter<'a> {
     type Item = ReaderResult<Grib2Value>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        // 現在値を返す回数が残っておらず、
-        // ランレングス圧縮オクテットが残っておらず、
-        // 読み込んだバイト数がランレングス圧縮オクテットを 記録しているバイト数に達している場合は終了
-        if self.current_times == 0 && self.total_bytes <= self.read_bytes {
+        // 現在値返却回数が0かつ、読み込んだバイト数がランレングス圧縮符号列を記録しているバイト数に達している場合は終了
+        if self.returning_times == 0 && self.total_bytes <= self.read_bytes {
             if self.number_of_reads == self.number_of_points {
                 return None;
             } else {
@@ -147,23 +145,23 @@ impl<'a> Iterator for Grib2ValueIter<'a> {
             }
         }
 
-        // 現在値を返す回数が残っていない場合は、ランレングス符号を展開して、レベル値、返却回数及び物理値を更新
-        if self.current_times == 0 {
-            // ランレングス符号を取得
+        // 現在値返却回数が0の場合は、ランレングス圧縮符号を展開して現在値を更新
+        if self.returning_times == 0 {
+            // ランレングス圧縮符号を取得
             let run_length = self.retrieve_run_length();
             if run_length.is_err() {
                 return Some(Err(run_length.err().unwrap()));
             }
-            // ランレングス符号を展開
+            // ランレングス圧縮符号を展開
             let (level, times) = expand_run_length(&run_length.unwrap(), self.maxv, self.lngu);
-            // レベル値、物理値及び現在の値を繰り返す回数を更新
+            // 現在のレベル値、物理値及び返却回数を更新
             self.current_level = level;
-            self.current_times = times;
             self.current_value = if 0 < level {
                 Some(self.level_values[level as usize - 1])
             } else {
                 None
             };
+            self.returning_times = times;
         }
 
         // 結果を生成
@@ -173,15 +171,15 @@ impl<'a> Iterator for Grib2ValueIter<'a> {
             level: self.current_level,
             value: self.current_value,
         }));
-        // 現在の物理値を返す回数を減らす
-        self.current_times -= 1;
+        // 現在値を返す回数を減らす
+        self.returning_times -= 1;
         // 格子を移動
         self.current_lon += self.lon_inc;
         if self.lon_max < self.current_lon {
             self.current_lat -= self.lat_inc;
             self.current_lon = self.lon_min;
         }
-        // 読み込んだ座標数をカウント
+        // 読み込んだ座標数をインクリメント
         self.number_of_reads += 1;
 
         result
