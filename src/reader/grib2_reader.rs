@@ -50,13 +50,77 @@ where
         Ok(Grib2Reader { path, inner })
     }
 
+    /// 資料分野を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 資料分野
+    pub fn document_domain(&self) -> u8 {
+        self.inner.document_domain.unwrap()
+    }
+
+    /// GRIB版番号を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// GRIB版番号
+    pub fn grib_version(&self) -> u8 {
+        self.inner.grib_version.unwrap()
+    }
+
     /// GRIB報全体のバイト数を返す。
+    ///
     ///
     /// # 戻り値
     ///
     /// GRIB報全体のバイト数
     pub fn total_bytes(&self) -> usize {
         self.inner.total_bytes.unwrap()
+    }
+
+    /// 作成中枢の識別を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 作成中枢の識別
+    pub fn creator_identify(&self) -> u16 {
+        self.inner.creator_identify.unwrap()
+    }
+
+    /// 作成副中枢を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 作成副中枢
+    pub fn creator_sub_identify(&self) -> u16 {
+        self.inner.creator_sub_identify.unwrap()
+    }
+
+    /// GRIBマスター表バージョン番号を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// GRIBマスター表バージョン番号
+    pub fn master_table_version(&self) -> u8 {
+        self.inner.master_table_version.unwrap()
+    }
+
+    /// GRIB地域表バージョン番号を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// GRIB地域表バージョン番号
+    pub fn local_table_version(&self) -> u8 {
+        self.inner.local_table_version.unwrap()
+    }
+
+    /// 参照時刻の意味を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 参照時刻の意味
+    pub fn reference_time_significance(&self) -> u8 {
+        self.inner.reference_time_significance.unwrap()
     }
 
     /// 資料の参照時刻を返す。
@@ -86,6 +150,15 @@ where
         self.inner.document_kind.unwrap()
     }
 
+    /// 格子系定義の出典を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 格子系定義の出典
+    pub fn frame_definition_source(&self) -> u8 {
+        self.inner.frame_definition_source.unwrap()
+    }
+
     /// 第3節に記録されている資料点数を返す。
     ///
     /// # 戻り値
@@ -93,6 +166,78 @@ where
     /// 第3節に記録されている資料点数
     pub fn number_of_points(&self) -> u32 {
         self.inner.number_of_points.unwrap()
+    }
+
+    /// 格子点数を定義するリストのオクテット数を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 格子点数を定義するリストのオクテット数
+    pub fn frame_system_bytes(&self) -> u8 {
+        self.inner.frame_system_bytes.unwrap()
+    }
+
+    /// 格子点数を定義するリストの説明を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 格子点数を定義するリストの説明
+    pub fn frame_system_description(&self) -> u8 {
+        self.inner.frame_system_description.unwrap()
+    }
+
+    /// 格子系定義テンプレート番号を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 格子系定義テンプレート番号
+    pub fn frame_system_template(&self) -> u16 {
+        self.inner.frame_system_template.unwrap()
+    }
+
+    /// 地球の形状を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 地球の形状
+    pub fn earth_shape(&self) -> u8 {
+        self.inner.earth_shape.unwrap()
+    }
+
+    /// 地球回転楕円体の長軸の尺度因子を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 地球回転楕円体の長軸の尺度因子
+    pub fn major_axis_scale_factor(&self) -> u8 {
+        self.inner.major_axis_scale_factor.unwrap()
+    }
+
+    /// 地球回転楕円体の長軸の尺度付きの長さを返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 地球回転楕円体の長軸の尺度付きの長さ
+    pub fn major_axis_length(&self) -> u32 {
+        self.inner.major_axis_length.unwrap()
+    }
+
+    /// 地球回転楕円体の短軸の尺度因子を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 地球回転楕円体の短軸の尺度因子
+    pub fn minor_axis_scale_factor(&self) -> u8 {
+        self.inner.minor_axis_scale_factor.unwrap()
+    }
+
+    /// 地球回転楕円体の短軸の尺度付きの長さを返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 地球回転楕円体の短軸の尺度付きの長さ
+    pub fn minor_axis_length(&self) -> u32 {
+        self.inner.minor_axis_length.unwrap()
     }
 
     /// 緯線に沿った格子点数を返す。
@@ -113,6 +258,15 @@ where
         self.inner.number_of_points_lon.unwrap()
     }
 
+    /// 原作成領域の基本角を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 原作成領域の基本角
+    pub fn basic_angle_area(&self) -> u32 {
+        self.inner.basic_angle_area.unwrap()
+    }
+
     /// 最初の格子点の緯度（10e-6度単位）を返す。
     ///
     /// # 戻り値
@@ -129,6 +283,15 @@ where
     /// 最初の格子点の経度（10e-6度単位）
     pub fn first_point_lon(&self) -> u32 {
         self.inner.first_point_lon.unwrap()
+    }
+
+    /// 分解能及び成分フラグを返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 分解能及び成分フラグ
+    pub fn resolution_and_component(&self) -> u8 {
+        self.inner.resolution_and_component.unwrap()
     }
 
     /// 最後の格子点の緯度（10e-6度単位）を返す。
@@ -165,6 +328,24 @@ where
     /// j方向（緯度方向）の増分（10e-6度単位）
     pub fn increment_lat(&self) -> u32 {
         self.inner.increment_lat.unwrap()
+    }
+
+    /// 走査モードを返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 走査モード
+    pub fn scan_mode(&self) -> u8 {
+        self.inner.scan_mode.unwrap()
+    }
+
+    /// テンプレート直後の座標値の数を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// テンプレート直後の座標値の数
+    pub fn number_of_points_after_template(&self) -> u16 {
+        self.inner.number_of_points_after_template.unwrap()
     }
 
     /// プロダクト定義テンプレート番号を返す。
@@ -235,8 +416,8 @@ where
     /// # 戻り値
     ///
     /// 期間の単位の指示符
-    pub fn time_unit_indicator(&self) -> u8 {
-        self.inner.time_unit_indicator.unwrap()
+    pub fn term_unit_indicator(&self) -> u8 {
+        self.inner.term_unit_indicator.unwrap()
     }
 
     /// 予報時間を返す。
@@ -248,6 +429,15 @@ where
         self.inner.forecast_time.unwrap()
     }
 
+    /// 第一固定面の種類を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 第一固定面の種類
+    pub fn first_fixed_surface_type(&self) -> u8 {
+        self.inner.first_fixed_surface_type.unwrap()
+    }
+
     /// 全時間間隔の終了時を返す。
     ///
     /// # 戻り値
@@ -255,6 +445,24 @@ where
     /// 全時間間隔の終了時
     pub fn end_of_all_time_intervals(&self) -> PrimitiveDateTime {
         self.inner.end_of_all_time_intervals.unwrap()
+    }
+
+    /// 統計を算出するために使用した時間間隔を記述する期間の仕様の数を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 統計を算出するために使用した時間間隔を記述する期間の仕様の数
+    pub fn number_of_time_range_specs(&self) -> u8 {
+        self.inner.number_of_time_range_specs.unwrap()
+    }
+
+    /// 統計処理における欠測資料の総数を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 統計処理における欠測資料の総数
+    pub fn number_of_missing_values(&self) -> u32 {
+        self.inner.number_of_missing_values.unwrap()
     }
 
     /// 統計処理の種類を返す。
@@ -338,14 +546,22 @@ where
         self.inner.rain_gauge_info.unwrap()
     }
 
-    /* FIXME: メソモデルに関する情報が記録されていない場合がある
     /// メソモデル予想値の結合比率の計算領域数を返す。
     ///
     /// # 戻り値
     ///
     /// メソモデル予想値の結合比率の計算領域数
-    pub fn number_of_meso_model_areas(&self) -> u16 {
-        self.inner.number_of_meso_model_areas.unwrap()
+    pub fn number_of_meso_model_areas(&self) -> Option<u16> {
+        self.inner.number_of_meso_model_areas
+    }
+
+    /// メソモデル予想値の結合比率の尺度因子を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// メソモデル予想値の結合比率の尺度因子
+    pub fn meso_model_ratio_scale_factor(&self) -> Option<u8> {
+        self.inner.meso_model_ratio_scale_factor
     }
 
     /// 各領域のメソモデル予想値の結合比率を返す。
@@ -353,10 +569,9 @@ where
     /// # 戻り値
     ///
     /// 各領域のメソモデル予想値の結合比率
-    pub fn meso_model_area_ratio(&self) -> &[u16] {
-        self.inner.meso_model_area_ratio.as_ref().unwrap()
+    pub fn meso_model_area_combine_ratio(&self) -> &Option<Vec<u16>> {
+        &self.inner.meso_model_area_combine_ratio
     }
-    */
 
     /// 第5節に記録されている全資料点の数を返す。
     ///
@@ -367,12 +582,21 @@ where
         self.inner.total_number_of_points.unwrap()
     }
 
+    /// 資料表現テンプレート番号を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 資料表現テンプレート番号
+    pub fn data_representation_template(&self) -> u16 {
+        self.inner.data_representation_template.unwrap()
+    }
+
     /// 1データのビット数を返す。
     ///
     /// # 戻り値
     ///
     /// 1データのビット数
-    pub fn bit_per_data(&self) -> u8 {
+    pub fn bits_per_data(&self) -> u8 {
         self.inner.bits_per_data.unwrap()
     }
 
@@ -385,11 +609,11 @@ where
         self.inner.compression_max_level.unwrap()
     }
 
-    /// レベルの最大値を返す。
+    /// データの取り得るレベルの最大値を返す。
     ///
     /// # 戻り値
     ///
-    /// レベルの最大値
+    /// データの取り得るレベルの最大値
     pub fn max_level(&self) -> u16 {
         self.inner.max_level.unwrap()
     }
@@ -410,6 +634,15 @@ where
     /// レベル値と物理値(mm/h)の対応を格納するコレクション
     pub fn level_values(&self) -> &[u16] {
         self.inner.level_values.as_ref().unwrap()
+    }
+
+    /// ビットマップ指示符を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// ビットマップ指示符
+    pub fn bitmap_indicator(&self) -> u8 {
+        self.inner.bitmap_indicator.unwrap()
     }
 
     /// ランレングス圧縮オクテット列の開始位置を返す。
@@ -456,10 +689,202 @@ where
             self.last_point_lon(),
             self.increment_lat(),
             self.increment_lon(),
-            self.bit_per_data() as u16,
+            self.bits_per_data() as u16,
             self.compression_max_level(),
             self.level_values(),
         ))
+    }
+
+    /// 第0節:指示節を出力する。
+    #[rustfmt::skip]
+    pub fn write_section0<W>(&self, writer: &mut W) -> std::io::Result<()>
+    where
+        W: std::io::Write,
+    {
+        writeln!(writer, "第0節:指示節")?;
+        writeln!(writer, "    資料分野: {}", self.document_domain())?;
+        writeln!(writer, "    GRIB版番号: {}", self.grib_version())?;
+        writeln!(writer, "    GRIB報全体の長さ: 0x{:08X}", self.total_bytes())?;
+
+        Ok(())
+    }
+
+    /// 第1節:識別節を出力する。
+    #[rustfmt::skip]
+    pub fn write_section1<W>(&self, writer: &mut W) -> std::io::Result<()>
+    where
+        W: std::io::Write,
+    {
+        writeln!(writer, "第1節:識別節")?;
+        writeln!(writer, "    作成中枢の識別: {}", self.creator_identify())?;
+        writeln!(writer, "    作成副中枢: {}", self.creator_sub_identify())?;
+        writeln!(writer, "    GRIBマスター表バージョン番号: {}", self.master_table_version())?;
+        writeln!(writer, "    GRIB地域表バージョン番号: {}", self.local_table_version())?;
+        writeln!(writer, "    参照時刻の意味: {}", self.reference_time_significance())?;
+        writeln!(writer, "    資料の参照時刻: {}", self.referenced_at())?;
+        writeln!(writer, "    作成ステータス: {}", self.creation_status())?;
+        writeln!(writer, "    資料の種類: {}", self.document_kind())?;
+
+        Ok(())
+    }
+
+    /// 第2節:地域使用節を出力する。
+    #[rustfmt::skip]
+    pub fn write_section2<W>(&self, writer: &mut W) -> std::io::Result<()>
+    where
+        W: std::io::Write,
+    {
+        writeln!(writer, "第2節:地域使用節")?;
+
+        Ok(())
+    }
+
+    /// 第3節:格子系定義節を出力する。
+    #[rustfmt::skip]
+    pub fn write_section3<W>(&self, writer: &mut W) -> std::io::Result<()>
+    where
+        W: std::io::Write,
+    {
+        writeln!(writer, "第3節:格子系定義節")?;
+        writeln!(writer, "    格子系定義の出典: {}", self.frame_definition_source())?;
+        writeln!(writer, "    資料点数: {}", self.number_of_points())?;
+        writeln!(writer, "    格子点数を定義するリストのオクテット数: {}", self.frame_system_bytes())?;
+        writeln!(writer, "    格子点数を定義するリストの説明: {}", self.frame_system_description())?;
+        writeln!(writer, "    格子系定義テンプレート番号: {}", self.frame_system_template())?;
+        writeln!(writer, "    地球の形状: {}", self.earth_shape())?;
+        writeln!(writer, "    地球回転楕円体の長軸の尺度因子: {}", self.major_axis_scale_factor())?;
+        writeln!(writer, "    地球回転楕円体の長軸の尺度付きの長さ: {}", self.major_axis_length())?;
+        writeln!(writer, "    地球回転楕円体の短軸の尺度因子: {}", self.minor_axis_scale_factor())?;
+        writeln!(writer, "    地球回転楕円体の短軸の尺度付きの長さ: {}", self.minor_axis_length())?;
+        writeln!(writer, "    緯線に沿った格子点数: {}", self.number_of_points_lat())?;
+        writeln!(writer, "    経線に沿った格子点数: {}", self.number_of_points_lon())?;
+        writeln!(writer, "    原作成領域の基本角: {}", self.basic_angle_area())?;
+        writeln!(writer, "    最初の格子点の緯度: {}", self.first_point_lat())?;
+        writeln!(writer, "    最初の格子点の経度: {}", self.first_point_lon())?;
+        writeln!(writer, "    分解能及び成分フラグ: 0x{:02X}", self.resolution_and_component())?;
+        writeln!(writer, "    最後の格子点の緯度: {}", self.last_point_lat())?;
+        writeln!(writer, "    最後の格子点の経度: {}", self.last_point_lon())?;
+        writeln!(writer, "    i方向の増分: {}", self.increment_lat())?;
+        writeln!(writer, "    j方向の増分: {}", self.increment_lon())?;
+        writeln!(writer, "    走査モード: 0x{:02X}", self.scan_mode())?;
+
+        Ok(())
+    }
+
+    /// 第4節:プロダクト定義節を出力する。
+    #[rustfmt::skip]
+    pub fn write_section4<W>(&self, writer: &mut W) -> std::io::Result<()>
+    where
+        W: std::io::Write,
+    {
+        writeln!(writer, "第4節:プロダクト定義節")?;
+        writeln!(writer, "    資料点数: {}", self.number_of_points())?;
+        writeln!(writer, "    テンプレート直後の座標値の数: {}", self.number_of_points_after_template())?;
+        writeln!(writer, "    プロダクト定義テンプレート番号: {}", self.product_definition_template())?;
+        writeln!(writer, "    パラメータカテゴリー: {}", self.parameter_category())?;
+        writeln!(writer, "    パラメータ番号: {}", self.parameter_number())?;
+        writeln!(writer, "    作成処理の種類: {}", self.creation_process())?;
+        writeln!(writer, "    背景作成処理識別符: {}", self.background_process_identifier())?;
+        writeln!(writer, "    観測資料の参照時刻からの締切時間(時): {}", self.deadline_hour())?;
+        writeln!(writer, "    観測資料の参照時刻からの締切時間(分): {}", self.deadline_minute())?;
+        writeln!(writer, "    期間の単位の指示符: {}", self.term_unit_indicator())?;
+        writeln!(writer, "    予報時間(分): {}", self.forecast_time())?;
+        writeln!(writer, "    第一固定面の種類: {}", self.first_fixed_surface_type())?;
+        writeln!(writer, "    全時間間隔の終了時: {}", self.end_of_all_time_intervals())?;
+        writeln!(writer, "    統計を算出するために使用した時間間隔を記述する期間の仕様の数: {}", self.number_of_time_range_specs())?;
+        writeln!(writer, "    統計処理における欠測資料の総数: {}", self.number_of_missing_values())?;
+        writeln!(writer, "    統計処理の種類: {}", self.stat_proc())?;
+        writeln!(writer, "    統計処理の時間増分の種類: {}", self.stat_proc_time_inc())?;
+        writeln!(writer, "    統計処理の時間の単位の指示符: {}", self.stat_proc_time_unit())?;
+        writeln!(writer, "    統計処理した期間の長さ: {}", self.stat_proc_time_length())?;
+        writeln!(writer, "    連続的な資料場間の増分に関する時間の単位の指示符: {}", self.between_successive_time_unit())?;
+        writeln!(writer, "    続的な資料場間の時間の増分: {}", self.between_successive_time_inc())?;
+        writeln!(writer, "    レーダー等運用情報その1: 0x{:02X}", self.radar_info1())?;
+        writeln!(writer, "    レーダー等運用情報その2: 0x{:02X}", self.radar_info2())?;
+        writeln!(writer, "    雨量計運用情報: 0x{:02X}", self.rain_gauge_info())?;
+        writeln!(writer, "    メソモデル予想値の結合比率の計算領域数: {:?}", self.number_of_meso_model_areas())?;
+        writeln!(writer, "    メソモデル予想値の結合比率の尺度因子: {:?}", self.meso_model_ratio_scale_factor())?;
+        if self.meso_model_area_combine_ratio().is_some() {
+            writeln!(writer, "    各領域のメソモデル予想値の結合比率:")?;
+            for (i , ratio) in self.meso_model_area_combine_ratio().as_ref().unwrap().iter().enumerate() {
+                writeln!(writer, "        領域{}: {}", i + 1, ratio)?;
+            }
+        } else {
+            writeln!(writer, "    各領域のメソモデル予想値の結合比率: None")?;
+        }
+
+        Ok(())
+    }
+
+    /// 第5節:資料表現節を出力する。
+    #[rustfmt::skip]
+    pub fn write_section5<W>(&self, writer: &mut W) -> std::io::Result<()>
+    where
+        W: std::io::Write,
+    {
+        writeln!(writer, "第5節:資料表現節")?;
+        writeln!(writer, "    全資料点の数: {}", self.total_number_of_points())?;
+        writeln!(writer, "    資料表現テンプレート番号: {}", self.data_representation_template())?;
+        writeln!(writer, "    1データのビット数: {}", self.bits_per_data())?;
+        writeln!(writer, "    今回の圧縮に用いたレベルの最大値: {}", self.compression_max_level())?;
+        writeln!(writer, "    データの取り得るレベルの最大値: {}", self.max_level())?;
+        writeln!(writer, "    データ代表値の尺度因子: {}", self.data_scale_factor())?;
+        writeln!(writer, "    レベルmに対応するデータ代表値:")?;
+        for (i, level_value) in self.level_values().iter().enumerate() {
+            writeln!(writer, "        レベル{}: {}", i + 1, level_value)?;
+        }
+
+        Ok(())
+    }
+
+    /// 第6節:ビットマップ節を出力する。
+    #[rustfmt::skip]
+    pub fn write_section6<W>(&self, writer: &mut W) -> std::io::Result<()>
+    where
+        W: std::io::Write,
+    {
+        writeln!(writer, "第6節:ビットマップ節")?;
+        writeln!(writer, "    ビットマップ指示符数: {}", self.bitmap_indicator())?;
+
+        Ok(())
+    }
+
+    /// 第7節:資料節を出力する。
+    #[rustfmt::skip]
+    pub fn write_section7<W>(&self, writer: &mut W) -> std::io::Result<()>
+    where
+        W: std::io::Write,
+    {
+        writeln!(writer, "第7節:資料節")?;
+        writeln!(writer, "    ランレングス圧縮符号開始位置: 0x{:08X}", self.run_length_position())?;
+        writeln!(writer, "    ランレングス圧縮符号長さ: 0x{:08X}", self.run_length_bytes())?;
+
+        Ok(())
+    }
+
+    /// 全ての節を出力する。
+    pub fn write_sections<W>(&self, writer: &mut W) -> std::io::Result<()>
+    where
+        W: std::io::Write,
+    {
+        self.write_section0(writer)?;
+        writeln!(writer)?;
+        self.write_section1(writer)?;
+        writeln!(writer)?;
+        self.write_section2(writer)?;
+        writeln!(writer)?;
+        self.write_section3(writer)?;
+        writeln!(writer)?;
+        self.write_section4(writer)?;
+        writeln!(writer)?;
+        self.write_section5(writer)?;
+        writeln!(writer)?;
+        self.write_section6(writer)?;
+        writeln!(writer)?;
+        self.write_section7(writer)?;
+        writeln!(writer)?;
+
+        Ok(())
     }
 }
 
@@ -468,32 +893,80 @@ where
 struct Inner {
     /// 読み込んだバイト数
     read_bytes: usize,
+
+    /// 第0節:指示節
+    /// 資料分野
+    document_domain: Option<u8>,
+    /// GRIB版番号
+    grib_version: Option<u8>,
     /// GRIB報全体のバイト数
     total_bytes: Option<usize>,
+
+    /// 第2節:識別節
+    /// 作成中枢の識別
+    creator_identify: Option<u16>,
+    /// 作成副中枢
+    creator_sub_identify: Option<u16>,
+    /// GRIBマスター表バージョン番号
+    master_table_version: Option<u8>,
+    /// GRIB地域表バージョン番号
+    local_table_version: Option<u8>,
+    /// 参照時刻の意味
+    reference_time_significance: Option<u8>,
     /// 資料の参照時刻
     referenced_at: Option<PrimitiveDateTime>,
     /// 作成ステータス
     creation_status: Option<u8>,
     /// 資料の種類
     document_kind: Option<u8>,
+
+    /// 第3節:格子系定義節
+    /// 格子系定義の出典
+    frame_definition_source: Option<u8>,
     /// 第3節に記録されている資料点数
     number_of_points: Option<u32>,
+    /// 格子点数を定義するリストのオクテット数
+    frame_system_bytes: Option<u8>,
+    /// 格子点数を定義するリストの説明
+    frame_system_description: Option<u8>,
+    /// 格子系定義テンプレート番号
+    frame_system_template: Option<u16>,
+    /// 地球の形状
+    earth_shape: Option<u8>,
+    /// 地球回転楕円体の長軸の尺度因子
+    major_axis_scale_factor: Option<u8>,
+    /// 地球回転楕円体の長軸の尺度付きの長さ
+    major_axis_length: Option<u32>,
+    /// 地球回転楕円体の短軸の尺度因子
+    minor_axis_scale_factor: Option<u8>,
+    /// 地球回転楕円体の短軸の尺度付きの長さ
+    minor_axis_length: Option<u32>,
     /// 緯線に沿った格子点数
     number_of_points_lat: Option<u32>,
     /// 経線に沿った格子点数
     number_of_points_lon: Option<u32>,
+    /// 原作成領域の基本角
+    basic_angle_area: Option<u32>,
     /// 最初の格子点の緯度（10e-6度単位）
     first_point_lat: Option<u32>,
     /// 最初の格子点の経度（10e-6度単位）
     first_point_lon: Option<u32>,
     /// 最後の格子点の緯度（10e-6度単位）
     last_point_lat: Option<u32>,
+    /// 分解能及び成分フラグ
+    resolution_and_component: Option<u8>,
     /// 最後の格子点の経度（10e-6度単位）
     last_point_lon: Option<u32>,
     /// i方向（経度方向）の増分（10e-6度単位）
     increment_lon: Option<u32>,
     /// j方向（緯度方向）の増分（10e-6度単位）
     increment_lat: Option<u32>,
+    /// 走査モード
+    scan_mode: Option<u8>,
+
+    /// 第4章:プロダクト定義節
+    /// テンプレート直後の座標値の数
+    number_of_points_after_template: Option<u16>,
     /// プロダクト定義テンプレート番号
     product_definition_template: Option<u16>,
     /// パラメータカテゴリー
@@ -509,11 +982,17 @@ struct Inner {
     /// 観測資料の参照時刻からの締切時間（分）
     deadline_minute: Option<u8>,
     /// 期間の単位の指示符
-    time_unit_indicator: Option<u8>,
+    term_unit_indicator: Option<u8>,
     /// 予報時間
     forecast_time: Option<i32>,
+    /// 第一固定面の種類
+    first_fixed_surface_type: Option<u8>,
     /// 全時間間隔の終了時
     end_of_all_time_intervals: Option<PrimitiveDateTime>,
+    /// 統計を算出するために使用した時間間隔を記述する期間の仕様の数
+    number_of_time_range_specs: Option<u8>,
+    /// 統計処理における欠測資料の総数
+    number_of_missing_values: Option<u32>,
     /// 統計処理の種類
     stat_proc: Option<u8>,
     /// 統計処理の時間増分の種類
@@ -532,33 +1011,42 @@ struct Inner {
     radar_info2: Option<u64>,
     /// 雨量計運用情報
     rain_gauge_info: Option<u64>,
-    /*
-    FIXME: メソモデルに関する情報が記録されていない場合がある
     /// メソモデル予想値の結合比率の計算領域数
     number_of_meso_model_areas: Option<u16>,
+    /// メソモデル予想値の結合比率の尺度因子
+    meso_model_ratio_scale_factor: Option<u8>,
     /// 各領域のメソモデル予想値の結合比率
-    meso_model_area_ratio: Option<Vec<u16>>,
-    */
+    meso_model_area_combine_ratio: Option<Vec<u16>>,
+
+    /// 第5節:資料表現節
     /// 第5節に記録されている全資料点の数
     total_number_of_points: Option<u32>,
+    /// 資料表現テンプレート番号
+    data_representation_template: Option<u16>,
     /// 1データのビット数
     bits_per_data: Option<u8>,
     /// 今回の圧縮に用いたレベルの最大値
     compression_max_level: Option<u16>,
-    /// レベルの最大値
+    /// データの取り得るレベルの最大値
     max_level: Option<u16>,
     /// データ代表値の尺度因子
     data_scale_factor: Option<u8>,
     /// レベルmに対応するデータ代表値
     /// レベル値と物理値(mm/h)の対応を格納するコレクション
     level_values: Option<Vec<u16>>,
+
+    /// 第6節:ビットマップ節
+    /// ビットマップ指示符
+    bitmap_indicator: Option<u8>,
+
+    /// 第7節:資料値節
     /// ランレングス圧縮オクテット列の開始位置
     run_length_position: Option<usize>,
     /// ランレングス圧縮オクテット列のバイト数
     run_length_bytes: Option<usize>,
 }
 
-/// `Inner`構造体が実装する符号なし整数を読み込むメソッドに展開するマクロ
+/// `Inner`構造体が実装する数値を読み込むメソッドに展開するマクロ
 macro_rules! read_number {
     ($fname:ident, $type:ty) => {
         fn $fname(&mut self, reader: &mut FileReader) -> ReaderResult<$type> {
@@ -576,8 +1064,8 @@ macro_rules! read_number {
     };
 }
 
-/// `Inner`構造体が実装する読み込んだ符号なし整数を検証するメソッドに展開するマクロ
-macro_rules! validate_uint {
+/// `Inner`構造体が実装する読み込んだ数値を検証するメソッドに展開するマクロ
+macro_rules! validate_number {
     ($fname:ident, $read_fn:ident, $type:ty, $name:ident, $fmt:ident) => {
         fn $fname(
             &mut self,
@@ -585,7 +1073,7 @@ macro_rules! validate_uint {
             expected: $type,
             $name: &str,
             fmt: &str,
-        ) -> ReaderResult<()> {
+        ) -> ReaderResult<$type> {
             let value = self.$read_fn(reader).map_err(|_| {
                 ReaderError::ReadError(format!("{}の読み込みに失敗しました。", $name).into())
             })?;
@@ -596,7 +1084,7 @@ macro_rules! validate_uint {
                 return Err(ReaderError::Unexpected(msg.into()));
             }
 
-            Ok(())
+            Ok(value)
         }
     };
 }
@@ -651,20 +1139,20 @@ impl Inner {
         })?;
 
         // 資料分野: 1バイト
-        self.validate_u8(
+        self.document_domain = Some(self.validate_u8(
             reader,
             DOCUMENT_DOMAIN,
             "資料分野",
             "資料分野の値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        )?);
 
         // GRIB版番号: 1バイト
-        self.validate_u8(
+        self.grib_version = Some(self.validate_u8(
             reader,
             GRIB_VERSION,
             "GRIB版番号",
             "GRIB版番号の値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        )?);
 
         // GRIB報全体の長さ: 8バイト
         self.total_bytes = Some(self.read_u64(reader).map_err(|_| {
@@ -702,35 +1190,35 @@ impl Inner {
         )?;
 
         // 作成中枢の識別: 2bytes
-        self.seek_relative(reader, 2).map_err(|_| {
-            ReaderError::ReadError("第1節:作成中枢の識別の読み飛ばしに失敗しました。".into())
-        })?;
+        self.creator_identify = Some(self.read_u16(reader).map_err(|_| {
+            ReaderError::ReadError("第1節:作成中枢の識別の読み込みに失敗しました。".into())
+        })?);
 
         // 作成副中枢: 2bytes
-        self.seek_relative(reader, 2).map_err(|_| {
-            ReaderError::ReadError("第1節:作成副中枢の読み飛ばしに失敗しました。".into())
-        })?;
+        self.creator_sub_identify = Some(self.read_u16(reader).map_err(|_| {
+            ReaderError::ReadError("第1節:作成副中枢の読み込みに失敗しました。".into())
+        })?);
 
         // GRIBマスター表バージョン番号: 1byte
-        self.validate_u8(
+        self.master_table_version = Some(self.validate_u8(
             reader,
             MASTER_TABLE_VERSION,
             "GRIBマスター表バージョン番号",
             "GRIBマスター表バージョン番号の値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        )?);
 
         // GRIB地域表バージョン番号: 1byte
-        self.validate_u8(
+        self.local_table_version = Some(self.validate_u8(
             reader,
             LOCAL_TABLE_VERSION,
             "GRIB地域表バージョン番号",
             "GRIB地域表バージョン番号の値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        )?);
 
         // 参照時刻の意味: 1byte
-        self.seek_relative(reader, 1).map_err(|_| {
-            ReaderError::ReadError("第1節:参照時刻の意味の読み飛ばしに失敗しました。".into())
-        })?;
+        self.reference_time_significance = Some(self.read_u8(reader).map_err(|_| {
+            ReaderError::ReadError("第1節:参照時刻の意味の読み込みに失敗しました。".into())
+        })?);
 
         // 資料の参照時刻（日時）
         self.referenced_at = Some(self.read_datetime(reader).map_err(|_| {
@@ -784,12 +1272,12 @@ impl Inner {
         )?;
 
         // 格子系定義の出典: 1バイト
-        self.validate_u8(
+        self.frame_definition_source = Some(self.validate_u8(
             reader,
             FRAME_SYSTEM_SOURCE,
             "格子系定義の出典",
             "格子系定義の出典の値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        )?);
 
         // 資料点数: 4バイト
         self.number_of_points = Some(self.read_u32(reader).map_err(|_| {
@@ -797,36 +1285,36 @@ impl Inner {
         })?);
 
         // 格子点数を定義するリストのオクテット数: 1バイト
-        self.validate_u8(
+        self.frame_system_bytes = Some(self.validate_u8(
             reader,
             0,
             "格子点数を定義するリストのオクテット数",
             "格子点数を定義するリストのオクテット数の値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        )?);
 
         // 格子点数を定義するリストの説明
-        self.validate_u8(
+        self.frame_system_description = Some(self.validate_u8(
             reader,
             0,
             "格子点数を定義するリストの説明",
             "格子点数を定義するリストの説明の値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        )?);
 
         // 格子系定義テンプレート番号: 2バイト
-        self.validate_u16(
+        self.frame_system_template = Some(self.validate_u16(
             reader,
             FRAME_SYSTEM_TEMPLATE,
             "格子系定義テンプレート番号",
             "格子系定義テンプレート番号の値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        )?);
 
         // 地球の形状: 1バイト
-        self.validate_u8(
+        self.earth_shape = Some(self.validate_u8(
             reader,
             EARTH_SHAPE,
             "地球の形状",
             "地球の形状の値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        )?);
 
         // 地球球体の半径の尺度因子: 1バイト
         self.seek_relative(reader, 1).map_err(|_| {
@@ -843,36 +1331,36 @@ impl Inner {
         })?;
 
         // 地球回転楕円体の長軸の尺度因子: 1バイト
-        self.validate_u8(
+        self.major_axis_scale_factor = Some(self.validate_u8(
             reader,
-            EARTH_MAJOR_AXIS_SCALE_FACTOR,
+            MAJOR_AXIS_SCALE_FACTOR,
             "地球回転楕円体の長軸の尺度因子",
             "地球回転楕円体の長軸の尺度因子の値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        )?);
 
         // 地球回転楕円体の長軸の尺度付きの長さ: 4バイト
-        self.validate_u32(
+        self.major_axis_length  = Some(self.validate_u32(
             reader,
-            EARTH_MAJOR_AXIS_LENGTH,
+            MAJOR_AXIS_LENGTH,
             "地球回転楕円体の長軸の尺度付きの長さ",
             "地球回転楕円体の長軸の尺度付きの長さの値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        )?);
 
         // 地球回転楕円体の短軸の尺度因子: 1バイト
-        self.validate_u8(
+        self.minor_axis_scale_factor = Some(self.validate_u8(
             reader,
             EARTH_MINOR_AXIS_SCALE_FACTOR,
             "地球回転楕円体の短軸の尺度因子",
             "地球回転楕円体の短軸の尺度因子の値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        )?);
 
         // 地球回転楕円体の短軸の尺度付きの長さ: 4バイト
-        self.validate_u32(
+        self.minor_axis_length = Some(self.validate_u32(
             reader,
             EARTH_MINOR_AXIS_LENGTH,
             "地球回転楕円体の短軸の尺度付きの長さ",
             "地球回転楕円体の短軸の尺度付きの長さの値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        )?);
 
         // 緯線に沿った格子点数: 4バイト
         self.number_of_points_lat = Some(self.read_u32(reader).map_err(|_| {
@@ -885,12 +1373,12 @@ impl Inner {
         })?);
 
         // 原作成領域の基本角: 4バイト
-        self.validate_u32(
+        self.basic_angle_area = Some(self.validate_u32(
             reader,
-            BASIC_ANGLE_OF_ORIGINAL_AREA,
+            BASIC_ANGLE_OF_AREA,
             "原作成領域の基本角",
             "原作成領域の基本角の値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        )?);
 
         // 端点の経度及び緯度並びに方向増分の定義に使われる基本角の細分: 4バイト
         self.seek_relative(reader, 4).map_err(|_| {
@@ -915,12 +1403,12 @@ impl Inner {
         })?);
 
         // 分解能及び成分フラグ: 1バイト
-        self.validate_u8(
+        self.resolution_and_component = Some(self.validate_u8(
             reader,
-            RESOLUTION_AND_COMPONENT_FLAG,
+            RESOLUTION_AND_COMPONENT,
             "分解能及び成分フラグ",
             "分解能及び成分フラグの値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        )?);
 
         // 最後の格子点の緯度（10e-6度単位）: 4バイト
         self.last_point_lat = Some(self.read_u32(reader).map_err(|_| {
@@ -951,12 +1439,12 @@ impl Inner {
         })?);
 
         // 走査モード: 1バイト
-        self.validate_u8(
+        self.scan_mode = Some(self.validate_u8(
             reader,
             SCAN_MODE,
             "走査モード",
             "走査モードの値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        )?);
 
         assert_eq!(
             109, self.read_bytes,
@@ -985,12 +1473,12 @@ impl Inner {
         )?;
 
         // テンプレート直後の座標値の数: 2バイト
-        self.validate_u16(
+        self.number_of_points_after_template = Some(self.validate_u16(
             reader,
             0,
             "テンプレート直後の座標値の数",
             "テンプレート直後の座標値の数の値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        )?);
 
         // プロダクト定義テンプレート番号: 2バイト
         self.product_definition_template = Some(self.read_u16(reader).map_err(|_| {
@@ -1039,7 +1527,7 @@ impl Inner {
         })?);
 
         // 期間の単位の指示符: 1バイト
-        self.time_unit_indicator = Some(self.read_u8(reader).map_err(|_| {
+        self.term_unit_indicator = Some(self.read_u8(reader).map_err(|_| {
             ReaderError::ReadError("第4節:期間の単位の指示符の読み込みに失敗しました。".into())
         })?);
 
@@ -1049,12 +1537,12 @@ impl Inner {
         })?);
 
         // 第一固定面の種類: 1バイト
-        self.validate_u8(
+        self.first_fixed_surface_type = Some(self.validate_u8(
             reader,
             FIRST_FIXED_SURFACE_TYPE,
             "第一固定面の種類",
             "第一固定面の種類の値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        )?);
 
         // 第一固定面の尺度因子: 1バイト
         self.seek_relative(reader, 1).map_err(|_| {
@@ -1091,20 +1579,19 @@ impl Inner {
         })?);
 
         // 統計を算出するために使用した時間間隔を記述する期間の仕様の数: 1バイト
-        self.validate_u8(
+        self.number_of_time_range_specs = Some(self.validate_u8(
             reader,
-            NUMBER_OF_TIME_RANGE_SPECIFICATIONS,
+            NUMBER_OF_TIME_RANGE_SPECS,
             "統計を算出するために使用した時間間隔を記述する期間の仕様の数",
             "統計を算出するために使用した時間間隔を記述する期間の仕様の数の値は{value}でしたが、{expected}でなければなりません。"
-        )?;
+        )?);
 
         // 統計処理における欠測資料の総数: 4バイト
-        self.validate_u32(
-            reader,
-            TOTAL_NUMBER_OF_MISSING_DATA_VALUES,
-            "統計処理における欠測資料の総数",
-            "統計処理における欠測資料の総数の値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        self.number_of_missing_values = Some(self.read_u32(reader).map_err(|_| {
+            ReaderError::ReadError(
+                "第4節:統計処理における欠測資料の総数の読み込みに失敗しました。".into(),
+            )
+        })?);
 
         // 統計処理の種類: 1バイト
         self.stat_proc = Some(self.read_u8(reader).map_err(|_| {
@@ -1162,33 +1649,34 @@ impl Inner {
             ReaderError::ReadError("第4節:雨量計運用情報の読み込みに失敗しました。".into())
         })?);
 
-        /* FIXME: メソモデル予想値に関する情報が記録されていない場合がある?
-        // メソモデル予想値の結合比率の計算領域数: 2バイト
-        self.number_of_meso_model_areas = Some(self.read_u16(reader).map_err(|_| {
-            ReaderError::ReadError(
-                "第4節:メソモデル予想値の結合比率の計算領域数の読み込みに失敗しました。".into(),
-            )
-        })?);
-
-        // メソモデル予想値の結合比率の尺度因子: 1バイト
-        self.validate_u8(
-            reader,
-            MESO_MODEL_RATIO_SCALE_FACTOR,
-            "メソモデル予想値の結合比率の尺度因子",
-            "メソモデル予想値の結合比率の尺度因子の値は{value}でしたが、{expected}でなければなりません。"
-        )?;
-
-        // 各領域のメソモデル予想値の結合比率
-        let mut meso_model_ratio = Vec::new();
-        for _ in 0..self.number_of_meso_model_areas.unwrap() {
-            meso_model_ratio.push(self.read_u16(reader).map_err(|_| {
+        if self.product_definition_template.unwrap() == SHORT_RANGE_PRECIPITATION_FORECAST_TEMPLATE
+        {
+            // メソモデル予想値の結合比率の計算領域数: 2バイト
+            self.number_of_meso_model_areas = Some(self.read_u16(reader).map_err(|_| {
                 ReaderError::ReadError(
-                    "第4節:各領域のメソモデル予想値の結合比率の読み込みに失敗しました。".into(),
+                    "第4節:メソモデル予想値の結合比率の計算領域数の読み込みに失敗しました。".into(),
                 )
             })?);
+
+            // メソモデル予想値の結合比率の尺度因子: 1バイト
+            self.meso_model_ratio_scale_factor = Some(self.validate_u8(
+                reader,
+                MESO_MODEL_RATIO_SCALE_FACTOR,
+                "メソモデル予想値の結合比率の尺度因子",
+                "メソモデル予想値の結合比率の尺度因子の値は{value}でしたが、{expected}でなければなりません。"
+            )?);
+
+            // 各領域のメソモデル予想値の結合比率
+            let mut meso_model_ratio = Vec::new();
+            for _ in 0..self.number_of_meso_model_areas.unwrap() {
+                meso_model_ratio.push(self.read_u16(reader).map_err(|_| {
+                    ReaderError::ReadError(
+                        "第4節:各領域のメソモデル予想値の結合比率の読み込みに失敗しました。".into(),
+                    )
+                })?);
+            }
+            self.meso_model_area_combine_ratio = Some(meso_model_ratio);
         }
-        self.meso_model_area_ratio = Some(meso_model_ratio);
-        */
 
         // 検証
         let bytes = section_bytes as i64 - (self.read_bytes - to_section3_bytes) as i64;
@@ -1232,12 +1720,12 @@ impl Inner {
         })?);
 
         // 資料表現テンプレート番号: 2バイト
-        self.validate_u16(
+        self.data_representation_template = Some(self.validate_u16(
             reader,
             DATA_REPRESENTATION_TEMPLATE,
             "資料表現テンプレート番号",
             "資料表現テンプレート番号の値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        )?);
 
         // 1データのビット数: 1バイト
         self.bits_per_data = Some(self.read_u8(reader).map_err(|_| {
@@ -1251,7 +1739,7 @@ impl Inner {
             )
         })?);
 
-        // レベルの最大値: 2バイト
+        // データの取り得るレベルの最大値: 2バイト
         self.max_level = Some(self.read_u16(reader).map_err(|_| {
             ReaderError::ReadError("第5節:レベルの最大値の読み込みに失敗しました。".into())
         })?);
@@ -1317,12 +1805,12 @@ impl Inner {
         )?;
 
         // ビットマップ指示符: 1バイト
-        self.validate_u8(
+        self.bitmap_indicator = Some(self.validate_u8(
             reader,
             BITMAP_INDICATOR,
             "ビットマップ指示符",
             "ビットマップ指示符の値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        )?);
 
         // 検証
         if section_bytes as i64 - (self.read_bytes - to_section5_bytes) as i64 != 0 {
@@ -1456,9 +1944,9 @@ impl Inner {
     read_number!(read_i32, i32);
     // read_number!(read_i64, i64);
 
-    validate_uint!(validate_u8, read_u8, u8, name, fmt);
-    validate_uint!(validate_u16, read_u16, u16, name, fmt);
-    validate_uint!(validate_u32, read_u32, u32, name, fmt);
+    validate_number!(validate_u8, read_u8, u8, name, fmt);
+    validate_number!(validate_u16, read_u16, u16, name, fmt);
+    validate_number!(validate_u32, read_u32, u32, name, fmt);
     // validate_uint!(validate_u64, read_u64, u64, name, fmt);
 
     /// ファイルを指定されたバイト数読み飛ばす。
@@ -1502,31 +1990,29 @@ const FRAME_SYSTEM_TEMPLATE: u16 = 0;
 /// 地球の形状
 const EARTH_SHAPE: u8 = 4;
 /// 地球回転楕円体の長軸の尺度因子
-const EARTH_MAJOR_AXIS_SCALE_FACTOR: u8 = 1;
+const MAJOR_AXIS_SCALE_FACTOR: u8 = 1;
 /// 地球回転楕円体の長軸の尺度付きの長さ
-const EARTH_MAJOR_AXIS_LENGTH: u32 = 63_781_370;
+const MAJOR_AXIS_LENGTH: u32 = 63_781_370;
 /// 地球回転楕円体の短軸の尺度因子
 const EARTH_MINOR_AXIS_SCALE_FACTOR: u8 = 1;
 /// 地球回転楕円体の短軸の尺度付きの長さ
 const EARTH_MINOR_AXIS_LENGTH: u32 = 63_567_523;
 /// 原作成領域の基本角
-const BASIC_ANGLE_OF_ORIGINAL_AREA: u32 = 0;
+const BASIC_ANGLE_OF_AREA: u32 = 0;
 /// 分解能及び成分フラグ
-const RESOLUTION_AND_COMPONENT_FLAG: u8 = 0x30;
+const RESOLUTION_AND_COMPONENT: u8 = 0x30;
 /// 走査モード
 const SCAN_MODE: u8 = 0x00;
 
 /// 第4節
+/// 1kmメッシュ降水短時間予報のプロダクト定義テンプレート番号
+const SHORT_RANGE_PRECIPITATION_FORECAST_TEMPLATE: u16 = 50009;
 /// 第一固定面の種類
 const FIRST_FIXED_SURFACE_TYPE: u8 = 1;
 /// 統計を算出するために使用した時間間隔を記述する期間の仕様の数
-const NUMBER_OF_TIME_RANGE_SPECIFICATIONS: u8 = 1;
-/// 統計処理における欠測資料の総数
-const TOTAL_NUMBER_OF_MISSING_DATA_VALUES: u32 = 0;
-/* FIXME: メソモデルに関する情報が記録されていない場合がある
+const NUMBER_OF_TIME_RANGE_SPECS: u8 = 1;
 /// メソモデル予想値の結合比率の尺度因子
 const MESO_MODEL_RATIO_SCALE_FACTOR: u8 = 0;
-*/
 
 /// 第5節
 /// 資料表現テンプレート番号

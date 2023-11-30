@@ -1,5 +1,5 @@
 use std::fs::{File, OpenOptions};
-use std::io::{BufRead, BufReader, BufWriter, Write};
+use std::io::{stdout, BufRead, BufReader, BufWriter, Write};
 
 use grib2::reader::Grib2Reader;
 
@@ -9,11 +9,11 @@ fn test() {
     // GRIB2ファイルを読み込みCSVファイルに座標を出力
     let input = "resources/sample.bin";
     let mut reader = Grib2Reader::new(input).unwrap();
-    println!("recorded number of points: {}", reader.number_of_points());
-    println!(
-        "recorded total number of points: {}",
-        reader.total_number_of_points()
-    );
+    {
+        let handle = stdout().lock();
+        let mut writer = BufWriter::new(handle);
+        reader.write_sections(&mut writer).unwrap();
+    }
 
     let output = "resources/sample.csv";
     let file = OpenOptions::new()
