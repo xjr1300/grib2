@@ -12,7 +12,7 @@ fn convert_to_csv() {
     {
         let handle = stdout().lock();
         let mut writer = BufWriter::new(handle);
-        reader.write_sections(&mut writer).unwrap();
+        reader.debug_info(&mut writer).unwrap();
     }
 
     let output = "resources/sample.csv";
