@@ -2,7 +2,7 @@ use std::io::Read;
 
 use num_format::{Locale, ToFormattedString};
 
-use super::grib2_value::Grib2Value;
+use super::value::Grib2Value;
 use super::{FileReader, ReaderError, ReaderResult};
 
 pub struct Grib2ValueIter<'a> {
