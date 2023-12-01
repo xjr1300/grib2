@@ -3,6 +3,7 @@ use std::fs::File;
 use std::io::BufReader;
 
 mod analysis_rainfall_reader;
+mod sections;
 mod value;
 mod value_iter;
 
