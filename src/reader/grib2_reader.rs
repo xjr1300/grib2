@@ -645,29 +645,29 @@ where
         self.inner.bitmap_indicator.unwrap()
     }
 
-    /// ランレングス圧縮オクテット列の開始位置を返す。
+    /// ランレングス圧縮符号列の開始位置を返す。
     ///
     /// # 戻り値
     ///
-    /// ランレングス圧縮オクテット列の開始位置
+    /// ランレングス圧縮符号列の開始位置
     pub fn run_length_position(&self) -> usize {
         self.inner.run_length_position.unwrap()
     }
 
-    /// ランレングス圧縮オクテット列のバイト数を返す。
+    /// ランレングス圧縮符号列のバイト数を返す。
     ///
     /// # 戻り値
     ///
-    /// ランレングス圧縮オクテット列のバイト数
+    /// ランレングス圧縮符号列のバイト数
     pub fn run_length_bytes(&self) -> usize {
         self.inner.run_length_bytes.unwrap()
     }
 
-    /// ランレングス符号を走査するイテレーターを返す。
+    /// ランレングス圧縮符号を走査するイテレーターを返す。
     ///
     /// # 戻り値
     ///
-    /// ランレングス符号を走査するイテレーター
+    /// ランレングス圧縮符号を走査するイテレーター
     pub fn values(&mut self) -> ReaderResult<Grib2ValueIter<'_>> {
         let file = File::open(self.path.as_ref())
             .map_err(|e| ReaderError::NotFount(e.to_string().into()))?;
@@ -675,9 +675,7 @@ where
         reader
             .seek(SeekFrom::Start(self.run_length_position() as u64))
             .map_err(|_| {
-                ReaderError::ReadError(
-                    "ランレングス圧縮オクテット列のシークに失敗しました。".into(),
-                )
+                ReaderError::ReadError("ランレングス圧縮符号列のシークに失敗しました。".into())
             })?;
 
         Ok(Grib2ValueIter::new(
@@ -1040,9 +1038,9 @@ struct Inner {
     bitmap_indicator: Option<u8>,
 
     /// 第7節:資料値節
-    /// ランレングス圧縮オクテット列の開始位置
+    /// ランレングス圧縮符号列の開始位置
     run_length_position: Option<usize>,
-    /// ランレングス圧縮オクテット列のバイト数
+    /// ランレングス圧縮符号列のバイト数
     run_length_bytes: Option<usize>,
 }
 
@@ -1852,10 +1850,10 @@ impl Inner {
             "節番号の値は{value}でしたが、{expected}でなければなりません。",
         )?;
 
-        // ランレングス圧縮オクテット列の開始位置を記憶
+        // ランレングス圧縮符号列の開始位置を記憶
         self.run_length_position = Some(self.read_bytes);
 
-        // ランレングス圧縮オクテット列をスキップ
+        // ランレングス圧縮符号列をスキップ
         self.run_length_bytes = Some(section7_bytes - (4 + 1));
         self.seek_relative(reader, self.run_length_bytes.unwrap() as i64)
             .map_err(|_| {
