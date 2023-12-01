@@ -1137,12 +1137,9 @@ impl Inner {
         })?;
 
         // 資料分野: 1バイト
-        self.discipline = Some(self.validate_u8(
-            reader,
-            DISCIPLINE,
-            "資料分野",
-            "資料分野の値は{value}でしたが、{expected}でなければなりません。",
-        )?);
+        self.discipline = Some(self.read_u8(reader).map_err(|_| {
+            ReaderError::ReadError("第0節:資料分野の読み込みに失敗しました。".into())
+        })?);
 
         // GRIB版番号: 1バイト
         self.edition_number = Some(self.validate_u8(
@@ -1206,20 +1203,18 @@ impl Inner {
         })?);
 
         // GRIBマスター表バージョン番号: 1byte
-        self.table_version = Some(self.validate_u8(
-            reader,
-            TABLE_VERSION,
-            "GRIBマスター表バージョン番号",
-            "GRIBマスター表バージョン番号の値は{value}でしたが、{expected}でなければなりません。",
-        )?);
+        self.table_version = Some(self.read_u8(reader).map_err(|_| {
+            ReaderError::ReadError(
+                "第1節:GRIBマスター表バージョン番号の読み込みに失敗しました。".into(),
+            )
+        })?);
 
         // GRIB地域表バージョン番号: 1byte
-        self.local_table_version = Some(self.validate_u8(
-            reader,
-            LOCAL_TABLE_VERSION,
-            "GRIB地域表バージョン番号",
-            "GRIB地域表バージョン番号の値は{value}でしたが、{expected}でなければなりません。",
-        )?);
+        self.local_table_version = Some(self.read_u8(reader).map_err(|_| {
+            ReaderError::ReadError(
+                "第1節:GRIB地域表バージョン番号の読み込みに失敗しました。".into(),
+            )
+        })?);
 
         // 参照時刻の意味: 1byte
         self.significance_of_reference_time = Some(self.read_u8(reader).map_err(|_| {
@@ -1282,12 +1277,9 @@ impl Inner {
         )?;
 
         // 格子系定義の出典: 1バイト
-        self.source_of_grid_definition = Some(self.validate_u8(
-            reader,
-            SOURCE_OF_GRID_DEFINITION,
-            "格子系定義の出典",
-            "格子系定義の出典の値は{value}でしたが、{expected}でなければなりません。",
-        )?);
+        self.source_of_grid_definition = Some(self.read_u8(reader).map_err(|_| {
+            ReaderError::ReadError("第3節:格子系定義の出典の読み込みに失敗しました。".into())
+        })?);
 
         // 資料点数: 4バイト
         self.number_of_data_points = Some(self.read_u32(reader).map_err(|_| {
@@ -1295,36 +1287,30 @@ impl Inner {
         })?);
 
         // 格子点数を定義するリストのオクテット数: 1バイト
-        self.number_of_octets_for_number_of_points = Some(self.validate_u8(
-            reader,
-            NUMBER_OF_OCTETS_FOR_NUMBER_OF_POINTS,
-            "格子点数を定義するリストのオクテット数",
-            "格子点数を定義するリストのオクテット数の値は{value}でしたが、{expected}でなければなりません。",
-        )?);
+        self.number_of_octets_for_number_of_points = Some(self.read_u8(reader).map_err(|_| {
+            ReaderError::ReadError(
+                "第3節:格子点数を定義するリストのオクテット数の読み込みに失敗しました。".into(),
+            )
+        })?);
 
         // 格子点数を定義するリストの説明
-        self.interpretation_of_number_of_points = Some(self.validate_u8(
-            reader,
-            INTERPRETATION_OF_NUMBER_OF_POINTS,
-            "格子点数を定義するリストの説明",
-            "格子点数を定義するリストの説明の値は{value}でしたが、{expected}でなければなりません。",
-        )?);
+        self.interpretation_of_number_of_points = Some(self.read_u8(reader).map_err(|_| {
+            ReaderError::ReadError(
+                "第3節:格子点数を定義するリストの説明の読み込みに失敗しました。".into(),
+            )
+        })?);
 
         // 格子系定義テンプレート番号: 2バイト
-        self.grid_definition_template_number = Some(self.validate_u16(
-            reader,
-            GRID_DEFINITION_TEMPLATE_NUMBER,
-            "格子系定義テンプレート番号",
-            "格子系定義テンプレート番号の値は{value}でしたが、{expected}でなければなりません。",
-        )?);
+        self.grid_definition_template_number = Some(self.read_u16(reader).map_err(|_| {
+            ReaderError::ReadError(
+                "第3節:格子系定義テンプレート番号の読み込みに失敗しました。".into(),
+            )
+        })?);
 
         // 地球の形状: 1バイト
-        self.shape_of_earth = Some(self.validate_u8(
-            reader,
-            SHAPE_OF_EARTH,
-            "地球の形状",
-            "地球の形状の値は{value}でしたが、{expected}でなければなりません。",
-        )?);
+        self.shape_of_earth = Some(self.read_u8(reader).map_err(|_| {
+            ReaderError::ReadError("第3節:地球の形状の読み込みに失敗しました。".into())
+        })?);
 
         // 地球球体の半径の尺度因子: 1バイト
         self.seek_relative(reader, 1).map_err(|_| {
@@ -1341,36 +1327,32 @@ impl Inner {
         })?;
 
         // 地球回転楕円体の長軸の尺度因子: 1バイト
-        self.scale_factor_of_earth_major_axis = Some(self.validate_u8(
-            reader,
-            SCALE_FACTOR_OF_EARTH_MAJOR_AXIS,
-            "地球回転楕円体の長軸の尺度因子",
-            "地球回転楕円体の長軸の尺度因子の値は{value}でしたが、{expected}でなければなりません。",
-        )?);
+        self.scale_factor_of_earth_major_axis = Some(self.read_u8(reader).map_err(|_| {
+            ReaderError::ReadError(
+                "第3節:地球回転楕円体の長軸の尺度因子の読み込みに失敗しました。".into(),
+            )
+        })?);
 
         // 地球回転楕円体の長軸の尺度付きの長さ: 4バイト
-        self.scaled_value_of_earth_major_axis  = Some(self.validate_u32(
-            reader,
-            SCALED_VALUE_OF_EARTH_MAJOR_AXIS,
-            "地球回転楕円体の長軸の尺度付きの長さ",
-            "地球回転楕円体の長軸の尺度付きの長さの値は{value}でしたが、{expected}でなければなりません。",
-        )?);
+        self.scaled_value_of_earth_major_axis = Some(self.read_u32(reader).map_err(|_| {
+            ReaderError::ReadError(
+                "第3節:地球回転楕円体の長軸の尺度付きの長さの読み込みに失敗しました。".into(),
+            )
+        })?);
 
         // 地球回転楕円体の短軸の尺度因子: 1バイト
-        self.scale_factor_of_earth_minor_axis = Some(self.validate_u8(
-            reader,
-            SCALE_FACTOR_OF_EARTH_MINOR_AXIS,
-            "地球回転楕円体の短軸の尺度因子",
-            "地球回転楕円体の短軸の尺度因子の値は{value}でしたが、{expected}でなければなりません。",
-        )?);
+        self.scale_factor_of_earth_minor_axis = Some(self.read_u8(reader).map_err(|_| {
+            ReaderError::ReadError(
+                "第3節:地球回転楕円体の短軸の尺度因子の読み込みに失敗しました。".into(),
+            )
+        })?);
 
         // 地球回転楕円体の短軸の尺度付きの長さ: 4バイト
-        self.scaled_value_of_earth_minor_axis = Some(self.validate_u32(
-            reader,
-            SCALED_VALUE_OF_EARTH_MINOR_AXIS,
-            "地球回転楕円体の短軸の尺度付きの長さ",
-            "地球回転楕円体の短軸の尺度付きの長さの値は{value}でしたが、{expected}でなければなりません。",
-        )?);
+        self.scaled_value_of_earth_minor_axis = Some(self.read_u32(reader).map_err(|_| {
+            ReaderError::ReadError(
+                "第3節:地球回転楕円体の短軸の尺度付きの長さの読み込みに失敗しました。".into(),
+            )
+        })?);
 
         // 緯線に沿った格子点数: 4バイト
         self.number_of_along_lat_points = Some(self.read_u32(reader).map_err(|_| {
@@ -1383,12 +1365,9 @@ impl Inner {
         })?);
 
         // 原作成領域の基本角: 4バイト
-        self.basic_angle_of_initial_product_domain = Some(self.validate_u32(
-            reader,
-            BASIC_ANGLE_OF_INITIAL_PRODUCT_DOMAIN,
-            "原作成領域の基本角",
-            "原作成領域の基本角の値は{value}でしたが、{expected}でなければなりません。",
-        )?);
+        self.basic_angle_of_initial_product_domain = Some(self.read_u32(reader).map_err(|_| {
+            ReaderError::ReadError("第3節:原作成領域の基本角の読み込みに失敗しました。".into())
+        })?);
 
         // 端点の経度及び緯度並びに方向増分の定義に使われる基本角の細分: 4バイト
         self.seek_relative(reader, 4).map_err(|_| {
@@ -1413,12 +1392,9 @@ impl Inner {
         })?);
 
         // 分解能及び成分フラグ: 1バイト
-        self.resolution_and_component_flags = Some(self.validate_u8(
-            reader,
-            RESOLUTION_AND_COMPONENT_FLAGS,
-            "分解能及び成分フラグ",
-            "分解能及び成分フラグの値は{value}でしたが、{expected}でなければなりません。",
-        )?);
+        self.resolution_and_component_flags = Some(self.read_u8(reader).map_err(|_| {
+            ReaderError::ReadError("第3節:分解能及び成分フラグの読み込みに失敗しました。".into())
+        })?);
 
         // 最後の格子点の緯度（10e-6度単位）: 4バイト
         self.lat_of_last_grid_point = Some(self.read_u32(reader).map_err(|_| {
@@ -1449,12 +1425,9 @@ impl Inner {
         })?);
 
         // 走査モード: 1バイト
-        self.scanning_mode = Some(self.validate_u8(
-            reader,
-            SCANNING_MODE,
-            "走査モード",
-            "走査モードの値は{value}でしたが、{expected}でなければなりません。",
-        )?);
+        self.scanning_mode = Some(self.read_u8(reader).map_err(|_| {
+            ReaderError::ReadError("第3節:走査モードの読み込みに失敗しました。".into())
+        })?);
 
         let section_read_bytes = self.read_bytes - to_section2_bytes;
         if section_bytes != section_read_bytes {
@@ -1489,12 +1462,11 @@ impl Inner {
         )?;
 
         // テンプレート直後の座標値の数: 2バイト
-        self.number_of_after_template_points = Some(self.validate_u16(
-            reader,
-            NUMBER_OF_AFTER_TEMPLATE_POINTS,
-            "テンプレート直後の座標値の数",
-            "テンプレート直後の座標値の数の値は{value}でしたが、{expected}でなければなりません。",
-        )?);
+        self.number_of_after_template_points = Some(self.read_u16(reader).map_err(|_| {
+            ReaderError::ReadError(
+                "第4節:テンプレート直後の座標値の数の読み込みに失敗しました。".into(),
+            )
+        })?);
 
         // プロダクト定義テンプレート番号: 2バイト
         self.product_definition_template_number = Some(self.read_u16(reader).map_err(|_| {
@@ -1553,12 +1525,9 @@ impl Inner {
         })?);
 
         // 第一固定面の種類: 1バイト
-        self.type_of_first_fixed_surface = Some(self.validate_u8(
-            reader,
-            TYPE_OF_FIRST_FIXED_SURFACE,
-            "第一固定面の種類",
-            "第一固定面の種類の値は{value}でしたが、{expected}でなければなりません。",
-        )?);
+        self.type_of_first_fixed_surface = Some(self.read_u8(reader).map_err(|_| {
+            ReaderError::ReadError("第4節:第一固定面の種類の読み込みに失敗しました。".into())
+        })?);
 
         // 第一固定面の尺度因子: 1バイト
         self.seek_relative(reader, 1).map_err(|_| {
@@ -1595,12 +1564,11 @@ impl Inner {
         })?);
 
         // 統計を算出するために使用した時間間隔を記述する期間の仕様の数: 1バイト
-        self.number_of_time_range_specs = Some(self.validate_u8(
-            reader,
-            NUMBER_OF_TIME_RANGE_SPECS,
-            "統計を算出するために使用した時間間隔を記述する期間の仕様の数",
-            "統計を算出するために使用した時間間隔を記述する期間の仕様の数の値は{value}でしたが、{expected}でなければなりません。"
-        )?);
+        self.number_of_time_range_specs = Some(self.read_u8( reader).map_err(|_| {
+            ReaderError::ReadError(
+                "第4節:統計を算出するために使用した時間間隔を記述する期間の仕様の数の読み込みに失敗しました。".into(),
+            )
+        })?);
 
         // 統計処理における欠測資料の総数: 4バイト
         self.number_of_missing_values = Some(self.read_u32(reader).map_err(|_| {
@@ -1676,12 +1644,11 @@ impl Inner {
             })?);
 
             // メソモデル予想値の結合比率の尺度因子: 1バイト
-            self.meso_model_ratio_scale_factor = Some(self.validate_u8(
-                reader,
-                MESO_MODEL_RATIO_SCALE_FACTOR,
-                "メソモデル予想値の結合比率の尺度因子",
-                "メソモデル予想値の結合比率の尺度因子の値は{value}でしたが、{expected}でなければなりません。"
-            )?);
+            self.meso_model_ratio_scale_factor = Some(self.read_u8(reader).map_err(|_| {
+                ReaderError::ReadError(
+                    "第4節:メソモデル予想値の結合比率の尺度因子の読み込みに失敗しました。".into(),
+                )
+            })?);
 
             // 各領域のメソモデル予想値の結合比率
             let mut meso_model_ratio = Vec::new();
@@ -1734,12 +1701,11 @@ impl Inner {
         })?);
 
         // 資料表現テンプレート番号: 2バイト
-        self.data_representation_template_number = Some(self.validate_u16(
-            reader,
-            DATA_REPRESENTATION_TEMPLATE,
-            "資料表現テンプレート番号",
-            "資料表現テンプレート番号の値は{value}でしたが、{expected}でなければなりません。",
-        )?);
+        self.data_representation_template_number = Some(self.read_u16(reader).map_err(|_| {
+            ReaderError::ReadError(
+                "第5節:資料表現テンプレート番号の読み込みに失敗しました。".into(),
+            )
+        })?);
 
         // 1データのビット数: 1バイト
         self.bits_per_value = Some(self.read_u8(reader).map_err(|_| {
@@ -1813,12 +1779,9 @@ impl Inner {
         )?;
 
         // ビットマップ指示符: 1バイト
-        self.bitmap_indicator = Some(self.validate_u8(
-            reader,
-            BITMAP_INDICATOR,
-            "ビットマップ指示符",
-            "ビットマップ指示符の値は{value}でしたが、{expected}でなければなりません。",
-        )?);
+        self.bitmap_indicator = Some(self.read_u8(reader).map_err(|_| {
+            ReaderError::ReadError("第6節:ビットマップ指示符の読み込みに失敗しました。".into())
+        })?);
 
         // 検証
         let section_read_bytes = self.read_bytes - to_section5_bytes;
@@ -1953,7 +1916,7 @@ impl Inner {
     // read_number!(read_i64, i64);
 
     validate_number!(validate_u8, read_u8, u8, name, fmt);
-    validate_number!(validate_u16, read_u16, u16, name, fmt);
+    // validate_number!(validate_u16, read_u16, u16, name, fmt);
     validate_number!(validate_u32, read_u32, u32, name, fmt);
     // validate_uint!(validate_u64, read_u64, u64, name, fmt);
 
@@ -1977,68 +1940,25 @@ impl Inner {
 /// 第0節
 /// 節の長さ
 const SECTION0_BYTES: usize = 16;
-/// 資料分野: 気象分野
-const DISCIPLINE: u8 = 0;
 /// GRIB版番号
 const EDITION_NUMBER: u8 = 2;
 
 /// 第1節
 /// 節の長さ（バイト）
 const SECTION1_BYTES: u32 = 21;
-/// GRIBマスター表バージョン番号
-const TABLE_VERSION: u8 = 2;
-/// GRIB地域表バージョン番号
-const LOCAL_TABLE_VERSION: u8 = 1;
 
 /// 第3節
 /// 節の長さ（バイト）
 const SECTION3_BYTES: u32 = 72;
-/// 格子系定義の出典
-const SOURCE_OF_GRID_DEFINITION: u8 = 0;
-/// 格子点数を定義するリストのオクテット数
-const NUMBER_OF_OCTETS_FOR_NUMBER_OF_POINTS: u8 = 0;
-/// 格子点数を定義するリストの説明
-const INTERPRETATION_OF_NUMBER_OF_POINTS: u8 = 0;
-/// 格子点定義テンプレート番号
-const GRID_DEFINITION_TEMPLATE_NUMBER: u16 = 0;
-/// 地球の形状
-const SHAPE_OF_EARTH: u8 = 4;
-/// 地球回転楕円体の長軸の尺度因子
-const SCALE_FACTOR_OF_EARTH_MAJOR_AXIS: u8 = 1;
-/// 地球回転楕円体の長軸の尺度付きの長さ
-const SCALED_VALUE_OF_EARTH_MAJOR_AXIS: u32 = 63_781_370;
-/// 地球回転楕円体の短軸の尺度因子
-const SCALE_FACTOR_OF_EARTH_MINOR_AXIS: u8 = 1;
-/// 地球回転楕円体の短軸の尺度付きの長さ
-const SCALED_VALUE_OF_EARTH_MINOR_AXIS: u32 = 63_567_523;
-/// 原作成領域の基本角
-const BASIC_ANGLE_OF_INITIAL_PRODUCT_DOMAIN: u32 = 0;
-/// 分解能及び成分フラグ
-const RESOLUTION_AND_COMPONENT_FLAGS: u8 = 0x30;
-/// 走査モード
-const SCANNING_MODE: u8 = 0x00;
 
 /// 第4節
-/// テンプレート直後の座標値の数
-const NUMBER_OF_AFTER_TEMPLATE_POINTS: u16 = 0;
 /// 1kmメッシュ降水短時間予報のプロダクト定義テンプレート番号
 const SHORT_RANGE_PRECIPITATION_FORECAST_TEMPLATE: u16 = 50009;
-/// 第一固定面の種類
-const TYPE_OF_FIRST_FIXED_SURFACE: u8 = 1;
-/// 統計を算出するために使用した時間間隔を記述する期間の仕様の数
-const NUMBER_OF_TIME_RANGE_SPECS: u8 = 1;
-/// メソモデル予想値の結合比率の尺度因子
-const MESO_MODEL_RATIO_SCALE_FACTOR: u8 = 0;
-
-/// 第5節
-/// 資料表現テンプレート番号
-const DATA_REPRESENTATION_TEMPLATE: u16 = 200;
 
 /// 第6節
 /// 節の長さ（バイト）
 const SECTION6_BYTES: u32 = 6;
 /// ビットマップ指示符
-const BITMAP_INDICATOR: u8 = 255;
 
 /// 第8節
 /// 第8節終端のマーカー
