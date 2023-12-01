@@ -7,3 +7,6 @@ edition = "2021"
 num-format = "0.4.4"
 thiserror = "1.0.50"
 time = { version = "0.3.30", features = ["macros", "parsing"] }
+
+[dev-dependencies]
+gsjp = { git = "https://github.com/xjr1300/gsjp.git", rev = "483d2b0" }

@@ -21,9 +21,18 @@ dependencies = [
 name = "grib2"
 version = "0.1.0"
 dependencies = [
+ "gsjp",
  "num-format",
  "thiserror",
  "time",
+]
+
+[[package]]
+name = "gsjp"
+version = "0.1.0"
+source = "git+https://github.com/xjr1300/gsjp.git?rev=483d2b0#483d2b0dad72e27a3a8a758d2d16901a44a83888"
+dependencies = [
+ "thiserror",
 ]
 
 [[package]]
