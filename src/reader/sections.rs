@@ -10,6 +10,15 @@ const EDITION_NUMBER: u8 = 2;
 /// 第1節:節の長さ（バイト）
 const SECTION1_BYTES: u32 = 21;
 
+/// 第3節:格子系定義テンプレート番号
+const GRID_DEFINITION_TEMPLATE_NUMBER: u16 = 0;
+
+/// 第４節:パラメーターカテゴリー
+const PARAMETER_CATEGORY: u8 = 1;
+
+/// 第5節:資料表現テンプレート番号
+const DATA_REPRESENTATION_TEMPLATE_NUMBER: u16 = 200;
+
 /// 第6節:節の長さ（バイト）
 const SECTION6_BYTES: u32 = 6;
 
@@ -255,12 +264,7 @@ impl FromReader for Section0 {
         })?;
 
         // GRIB版番号: 1バイト
-        let edition_number = validate_u8(
-            reader,
-            EDITION_NUMBER,
-            "GRIB版番号",
-            "GRIB版番号の値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        let edition_number = validate_u8(reader, EDITION_NUMBER, "GRIB版番号")?;
 
         // GRIB報全体の長さ: 8バイト
         let total_length = read_u64(reader).map_err(|_| {
@@ -317,20 +321,10 @@ impl FromReader for Section1 {
     /// 第1節: 識別節
     fn from_reader(reader: &mut FileReader) -> ReaderResult<Self> {
         // 節の長さ: 4bytes
-        let section_bytes = validate_u32(
-            reader,
-            SECTION1_BYTES,
-            "節の長さ",
-            "節の長さの値は{value}でしたが、{expected}でなければなりません。",
-        )? as usize;
+        let section_bytes = validate_u32(reader, SECTION1_BYTES, "節の長さ")? as usize;
 
         // 節番号
-        validate_u8(
-            reader,
-            1,
-            "節番号",
-            "節番号の値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        validate_u8(reader, 1, "節番号")?;
 
         // 作成中枢の識別: 2bytes
         let center = read_u16(reader).map_err(|_| {
@@ -493,12 +487,7 @@ where
         })? as usize;
 
         // 節番号: 1バイト
-        validate_u8(
-            reader,
-            3,
-            "節番号",
-            "節番号の値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        validate_u8(reader, 3, "節番号")?;
 
         // 格子系定義の出典: 1バイト
         let source_of_grid_definition = read_u8(reader).map_err(|_| {
@@ -525,11 +514,13 @@ where
         })?;
 
         // 格子系定義テンプレート番号: 2バイト
-        let grid_definition_template_number = read_u16(reader).map_err(|_| {
-            ReaderError::ReadError(
-                "第3節:格子系定義テンプレート番号の読み込みに失敗しました。".into(),
-            )
-        })?;
+        let grid_definition_template_number = validate_u16(
+            reader,
+            GRID_DEFINITION_TEMPLATE_NUMBER,
+            "格子系定義テンプレート番号",
+        )?;
+
+        // テンプレート3
         let template = T3::from_reader(reader)?;
 
         Ok(Self {
@@ -902,12 +893,7 @@ where
         })? as usize;
 
         // 節番号: 1バイト
-        validate_u8(
-            reader,
-            4,
-            "節番号",
-            "節番号の値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        validate_u8(reader, 4, "節番号")?;
 
         // テンプレート直後の座標値の数: 2バイト
         let number_of_after_template_points = read_u16(reader).map_err(|_| {
@@ -924,9 +910,7 @@ where
         })?;
 
         // パラメータカテゴリー: 1バイト
-        let parameter_category = read_u8(reader).map_err(|_| {
-            ReaderError::ReadError("第4節:パラメータカテゴリーの読み込みに失敗しました。".into())
-        })?;
+        let parameter_category = validate_u8(reader, PARAMETER_CATEGORY, "パラメーターカテゴリー")?;
 
         // テンプレート4
         let template4 = T4::from_reader(reader)?;
@@ -1352,12 +1336,7 @@ where
         })? as usize;
 
         // 節番号: 1バイト
-        validate_u8(
-            reader,
-            5,
-            "節番号",
-            "節番号の値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        validate_u8(reader, 5, "節番号")?;
 
         // 全資料点の数: 4バイト
         let number_of_values = read_u32(reader).map_err(|_| {
@@ -1365,11 +1344,11 @@ where
         })?;
 
         // 資料表現テンプレート番号: 2バイト
-        let data_representation_template_number = read_u16(reader).map_err(|_| {
-            ReaderError::ReadError(
-                "第5節:資料表現テンプレート番号の読み込みに失敗しました。".into(),
-            )
-        })?;
+        let data_representation_template_number = validate_u16(
+            reader,
+            DATA_REPRESENTATION_TEMPLATE_NUMBER,
+            "資料表現テンプレート番号",
+        )?;
 
         // 1データのビット数: 1バイト
         let bits_per_value = read_u8(reader).map_err(|_| {
@@ -1508,20 +1487,10 @@ impl FromReaderWithTemplateSize for Template5_200 {
 impl FromReader for Section6 {
     fn from_reader(reader: &mut FileReader) -> ReaderResult<Self> {
         // 節の長さ: 4バイト
-        let section_bytes = validate_u32(
-            reader,
-            SECTION6_BYTES,
-            "節の長さ",
-            "節の長さの値は{value}でしたが、{expected}でなければなりません。",
-        )? as usize;
+        let section_bytes = validate_u32(reader, SECTION6_BYTES, "節の長さ")? as usize;
 
         // 節番号: 1バイト
-        validate_u8(
-            reader,
-            6,
-            "節番号",
-            "節番号の値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        validate_u8(reader, 6, "節番号")?;
 
         // ビットマップ指示符: 1バイト
         let bitmap_indicator = read_u8(reader).map_err(|_| {
@@ -1566,12 +1535,7 @@ where
         })? as usize;
 
         // 節番号: 1バイト
-        validate_u8(
-            reader,
-            7,
-            "節番号",
-            "節番号の値は{value}でしたが、{expected}でなければなりません。",
-        )?;
+        validate_u8(reader, 7, "節番号")?;
 
         // テンプレート7
         let template_bytes = section_bytes - (4 + 1);
@@ -1684,20 +1648,18 @@ read_number!(read_i32, i32);
 /// 数値を読み込み検証する関数を生成するマクロ
 macro_rules! validate_number {
     ($fname:ident, $read_fn:ident, $type:ty) => {
-        fn $fname(
-            reader: &mut FileReader,
-            expected: $type,
-            name: &str,
-            fmt: &str,
-        ) -> ReaderResult<$type> {
+        fn $fname(reader: &mut FileReader, expected: $type, name: &str) -> ReaderResult<$type> {
             let value = $read_fn(reader).map_err(|_| {
                 ReaderError::ReadError(format!("{}の読み込みに失敗しました。", name).into())
             })?;
             if value != expected {
-                let msg = fmt
-                    .replace("{value}", &value.to_string())
-                    .replace("{expected}", &expected.to_string());
-                return Err(ReaderError::Unexpected(msg.into()));
+                return Err(ReaderError::Unexpected(
+                    format!(
+                        "{}の値は{}でしたが、{}でなければなりません。",
+                        name, value, expected
+                    )
+                    .into(),
+                ));
             }
 
             Ok(value)
@@ -1706,6 +1668,7 @@ macro_rules! validate_number {
 }
 
 validate_number!(validate_u8, read_u8, u8);
+validate_number!(validate_u16, read_u16, u16);
 validate_number!(validate_u32, read_u32, u32);
 
 fn read_str(reader: &mut FileReader, size: usize) -> ReaderResult<String> {
