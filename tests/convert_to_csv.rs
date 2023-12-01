@@ -1,14 +1,14 @@
 use std::fs::{File, OpenOptions};
 use std::io::{stdout, BufRead, BufReader, BufWriter, Write};
 
-use grib2::reader::Grib2Reader;
+use grib2::reader::AnalysisRainfallReader;
 
 #[test]
 #[ignore]
 fn convert_to_csv() {
     // GRIB2ファイルを読み込みCSVファイルに座標を出力
     let input = "resources/sample.bin";
-    let mut reader = Grib2Reader::new(input).unwrap();
+    let mut reader = AnalysisRainfallReader::new(input).unwrap();
     {
         let handle = stdout().lock();
         let mut writer = BufWriter::new(handle);
