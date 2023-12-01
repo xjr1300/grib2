@@ -6,7 +6,7 @@ use std::str;
 use num_format::{Locale, ToFormattedString};
 use time::{Date, Month, PrimitiveDateTime, Time};
 
-use super::grib2_value_iter::Grib2ValueIter;
+use super::value_iter::Grib2ValueIter;
 use super::{FileReader, ReaderError, ReaderResult};
 
 /// 1kmメッシュ解析雨量リーダー
