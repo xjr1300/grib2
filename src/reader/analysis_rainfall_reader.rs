@@ -9,8 +9,8 @@ use time::{Date, Month, PrimitiveDateTime, Time};
 use super::grib2_value_iter::Grib2ValueIter;
 use super::{FileReader, ReaderError, ReaderResult};
 
-/// Grib2Reader
-pub struct Grib2Reader<P>
+/// 1kmメッシュ解析雨量リーダー
+pub struct AnalysisRainfallReader<P>
 where
     P: AsRef<Path>,
 {
@@ -18,7 +18,7 @@ where
     inner: Inner,
 }
 
-impl<P> Grib2Reader<P>
+impl<P> AnalysisRainfallReader<P>
 where
     P: AsRef<Path>,
 {
@@ -47,7 +47,7 @@ where
             ));
         }
 
-        Ok(Grib2Reader { path, inner })
+        Ok(AnalysisRainfallReader { path, inner })
     }
 
     /// 資料分野を返す。
@@ -546,33 +546,6 @@ where
         self.inner.rain_gauge_info.unwrap()
     }
 
-    /// メソモデル予想値の結合比率の計算領域数を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// メソモデル予想値の結合比率の計算領域数
-    pub fn number_of_meso_model_areas(&self) -> Option<u16> {
-        self.inner.number_of_meso_model_areas
-    }
-
-    /// メソモデル予想値の結合比率の尺度因子を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// メソモデル予想値の結合比率の尺度因子
-    pub fn meso_model_ratio_scale_factor(&self) -> Option<u8> {
-        self.inner.meso_model_ratio_scale_factor
-    }
-
-    /// 各領域のメソモデル予想値の結合比率を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 各領域のメソモデル予想値の結合比率
-    pub fn meso_model_area_combine_ratio(&self) -> &Option<Vec<u16>> {
-        &self.inner.meso_model_area_combine_ratio
-    }
-
     /// 第5節に記録されている全資料点の数を返す。
     ///
     /// # 戻り値
@@ -800,16 +773,6 @@ where
         writeln!(writer, "    レーダー等運用情報その1: 0x{:02X}", self.radar_info1())?;
         writeln!(writer, "    レーダー等運用情報その2: 0x{:02X}", self.radar_info2())?;
         writeln!(writer, "    雨量計運用情報: 0x{:02X}", self.rain_gauge_info())?;
-        writeln!(writer, "    メソモデル予想値の結合比率の計算領域数: {:?}", self.number_of_meso_model_areas())?;
-        writeln!(writer, "    メソモデル予想値の結合比率の尺度因子: {:?}", self.meso_model_ratio_scale_factor())?;
-        if self.meso_model_area_combine_ratio().is_some() {
-            writeln!(writer, "    各領域のメソモデル予想値の結合比率:")?;
-            for (i , ratio) in self.meso_model_area_combine_ratio().as_ref().unwrap().iter().enumerate() {
-                writeln!(writer, "        領域{}: {}", i + 1, ratio)?;
-            }
-        } else {
-            writeln!(writer, "    各領域のメソモデル予想値の結合比率: None")?;
-        }
 
         Ok(())
     }
@@ -1009,12 +972,6 @@ struct Inner {
     radar_info2: Option<u64>,
     /// 雨量計運用情報
     rain_gauge_info: Option<u64>,
-    /// メソモデル予想値の結合比率の計算領域数
-    number_of_meso_model_areas: Option<u16>,
-    /// メソモデル予想値の結合比率の尺度因子
-    meso_model_ratio_scale_factor: Option<u8>,
-    /// 各領域のメソモデル予想値の結合比率
-    meso_model_area_combine_ratio: Option<Vec<u16>>,
 
     /// 第5節:資料表現節
     /// 第5節に記録されている全資料点の数
@@ -1633,35 +1590,6 @@ impl Inner {
             ReaderError::ReadError("第4節:雨量計運用情報の読み込みに失敗しました。".into())
         })?);
 
-        if self.product_definition_template_number.unwrap()
-            == SHORT_RANGE_PRECIPITATION_FORECAST_TEMPLATE
-        {
-            // メソモデル予想値の結合比率の計算領域数: 2バイト
-            self.number_of_meso_model_areas = Some(self.read_u16(reader).map_err(|_| {
-                ReaderError::ReadError(
-                    "第4節:メソモデル予想値の結合比率の計算領域数の読み込みに失敗しました。".into(),
-                )
-            })?);
-
-            // メソモデル予想値の結合比率の尺度因子: 1バイト
-            self.meso_model_ratio_scale_factor = Some(self.read_u8(reader).map_err(|_| {
-                ReaderError::ReadError(
-                    "第4節:メソモデル予想値の結合比率の尺度因子の読み込みに失敗しました。".into(),
-                )
-            })?);
-
-            // 各領域のメソモデル予想値の結合比率
-            let mut meso_model_ratio = Vec::new();
-            for _ in 0..self.number_of_meso_model_areas.unwrap() {
-                meso_model_ratio.push(self.read_u16(reader).map_err(|_| {
-                    ReaderError::ReadError(
-                        "第4節:各領域のメソモデル予想値の結合比率の読み込みに失敗しました。".into(),
-                    )
-                })?);
-            }
-            self.meso_model_area_combine_ratio = Some(meso_model_ratio);
-        }
-
         // 検証
         let section_read_bytes = self.read_bytes - to_section3_bytes;
         if section_bytes != section_read_bytes {
@@ -1950,10 +1878,6 @@ const SECTION1_BYTES: u32 = 21;
 /// 第3節
 /// 節の長さ（バイト）
 const SECTION3_BYTES: u32 = 72;
-
-/// 第4節
-/// 1kmメッシュ降水短時間予報のプロダクト定義テンプレート番号
-const SHORT_RANGE_PRECIPITATION_FORECAST_TEMPLATE: u16 = 50009;
 
 /// 第6節
 /// 節の長さ（バイト）

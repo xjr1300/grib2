@@ -2,11 +2,11 @@ use std::borrow::Cow;
 use std::fs::File;
 use std::io::BufReader;
 
-mod grib2_reader;
+mod analysis_rainfall_reader;
 mod grib2_value;
 mod grib2_value_iter;
 
-pub use grib2_reader::Grib2Reader;
+pub use analysis_rainfall_reader::AnalysisRainfallReader;
 pub use grib2_value::Grib2Value;
 pub use grib2_value_iter::Grib2ValueIter;
 
