@@ -59,6 +59,10 @@ pub struct Section1 {
     type_of_processed_data: u8,
 }
 
+/// 第2節:地域使用節
+#[derive(Debug, Clone, Copy)]
+pub struct Section2;
+
 /// 第3節:格子系定義節
 #[derive(Debug, Clone, Copy)]
 pub struct Section3<T3> {
@@ -307,6 +311,20 @@ impl Section0 {
     pub fn total_length(&self) -> usize {
         self.total_length
     }
+
+    /// 第0節:指示節を出力する。
+    #[rustfmt::skip]
+    pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
+    where
+        W: std::io::Write,
+    {
+        writeln!(writer, "第0節:指示節")?;
+        writeln!(writer, "    資料分野: {}", self.discipline)?;
+        writeln!(writer, "    GRIB版番号: {}", self.edition_number)?;
+        writeln!(writer, "    GRIB報全体の長さ: 0x{:08X}", self.total_length)?;
+
+        Ok(())
+    }
 }
 
 impl FromReader for Section1 {
@@ -465,6 +483,52 @@ impl Section1 {
     pub fn type_of_processed_data(&self) -> u8 {
         self.type_of_processed_data
     }
+
+    /// 第1節:識別節を出力する。
+    #[rustfmt::skip]
+    pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
+    where
+        W: std::io::Write,
+    {
+        writeln!(writer, "第1節:識別節")?;
+        writeln!(writer, "    節の長さ: {}", self.section_bytes)?;
+        writeln!(writer, "    作成中枢の識別: {}", self.center)?;
+        writeln!(writer, "    作成副中枢: {}", self.sub_center)?;
+        writeln!(writer, "    GRIBマスター表バージョン番号: {}", self.table_version)?;
+        writeln!(writer, "    GRIB地域表バージョン番号: {}", self.local_table_version)?;
+        writeln!(writer, "    参照時刻の意味: {}", self.significance_of_reference_time)?;
+        writeln!(writer, "    資料の参照時刻: {}", self.referenced_at)?;
+        writeln!(writer, "    作成ステータス: {}", self.production_status_of_processed_data)?;
+        writeln!(writer, "    資料の種類: {}", self.type_of_processed_data)?;
+
+        Ok(())
+    }
+}
+
+impl Section2 {
+    /// GRIB2ファイルから第2節:地域使用節を読み込む。
+    ///
+    /// # 引数
+    ///
+    /// * `_reader` - GRIB2ファイルリーダー
+    ///
+    /// # 戻り値
+    ///
+    /// 第2節:地域使用節
+    pub(crate) fn from_reader(_reader: &mut FileReader) -> ReaderResult<Self> {
+        Ok(Self)
+    }
+
+    /// 第2節:地域使用節を出力する。
+        #[rustfmt::skip]
+    pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
+        where
+            W: std::io::Write,
+        {
+            writeln!(writer, "第2節:地域使用節")?;
+
+            Ok(())
+        }
 }
 
 impl<T3> FromReader for Section3<T3>
@@ -588,6 +652,24 @@ impl<T3> Section3<T3> {
     /// 格子系定義テンプレート番号
     pub fn grid_definition_template_number(&self) -> u16 {
         self.grid_definition_template_number
+    }
+
+    #[rustfmt::skip]
+    pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
+    where
+    T3: DebugTemplate<W>,
+        W: std::io::Write,
+    {
+        writeln!(writer, "第3節:格子系定義節")?;
+        writeln!(writer, "    節の長さ: {}", self.section_bytes)?;
+        writeln!(writer, "    格子系定義の出典: {}", self.source_of_grid_definition())?;
+        writeln!(writer, "    資料点数: {}", self.number_of_data_points)?;
+        writeln!(writer, "    格子点数を定義するリストのオクテット数: {}", self.number_of_octets_for_number_of_points)?;
+        writeln!(writer, "    格子点数を定義するリストの説明: {}", self.interpretation_of_number_of_points)?;
+        writeln!(writer, "    格子系定義テンプレート番号: {}", self.grid_definition_template_number)?;
+        self.template3.debug_info(writer)?;
+
+        Ok(())
     }
 }
 
@@ -882,6 +964,33 @@ impl FromReader for Template3_0 {
     }
 }
 
+impl<W> DebugTemplate<W> for Template3_0 {
+    #[rustfmt::skip]
+    fn debug_info(&self, writer: &mut W) -> std::io::Result<()>
+    where
+        W: std::io::Write,
+    {
+        writeln!(writer, "    地球の形状: {}", self.shape_of_earth)?;
+        writeln!(writer, "    地球回転楕円体の長軸の尺度因子: {}", self.scale_factor_of_earth_major_axis)?;
+        writeln!(writer, "    地球回転楕円体の長軸の尺度付きの長さ: {}", self.scaled_value_of_earth_major_axis)?;
+        writeln!(writer, "    地球回転楕円体の短軸の尺度因子: {}", self.scale_factor_of_earth_minor_axis)?;
+        writeln!(writer, "    地球回転楕円体の短軸の尺度付きの長さ: {}", self.scaled_value_of_earth_minor_axis)?;
+        writeln!(writer, "    緯線に沿った格子点数: {}", self.number_of_along_lat_points)?;
+        writeln!(writer, "    経線に沿った格子点数: {}", self.number_of_along_lon_points)?;
+        writeln!(writer, "    原作成領域の基本角: {}", self.basic_angle_of_initial_product_domain)?;
+        writeln!(writer, "    最初の格子点の緯度: {}", self.lat_of_first_grid_point)?;
+        writeln!(writer, "    最初の格子点の経度: {}", self.lon_of_first_grid_point)?;
+        writeln!(writer, "    分解能及び成分フラグ: 0x{:02X}", self.resolution_and_component_flags)?;
+        writeln!(writer, "    最後の格子点の緯度: {}", self.lat_of_last_grid_point)?;
+        writeln!(writer, "    最後の格子点の経度: {}", self.lon_of_last_grid_point)?;
+        writeln!(writer, "    i方向の増分: {}", self.j_direction_increment)?;
+        writeln!(writer, "    j方向の増分: {}", self.i_direction_increment)?;
+        writeln!(writer, "    走査モード: 0x{:02X}", self.scanning_mode)?;
+
+        Ok(())
+    }
+}
+
 impl<T4> FromReader for Section4<T4>
 where
     T4: FromReader,
@@ -960,6 +1069,23 @@ impl<T4> Section4<T4> {
     /// パラメータカテゴリー
     pub fn parameter_category(&self) -> u8 {
         self.parameter_category
+    }
+
+    /// 第4節:プロダクト定義節を出力する。
+    #[rustfmt::skip]
+    pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
+    where
+        W: std::io::Write,
+        T4: DebugTemplate<W>,
+    {
+        writeln!(writer, "第4節:プロダクト定義節")?;
+        writeln!(writer, "    節の長さ: {}", self.section_bytes)?;
+        writeln!(writer, "    テンプレート直後の座標値の数: {}", self.number_of_after_template_points)?;
+        writeln!(writer, "    プロダクト定義テンプレート番号: {}", self.product_definition_template_number)?;
+        writeln!(writer, "    パラメータカテゴリー: {}", self.parameter_category)?;
+        self.template4.debug_info(writer)?;
+
+        Ok(())
     }
 }
 
@@ -1325,6 +1451,37 @@ impl FromReader for Template4_50008 {
     }
 }
 
+impl<W> DebugTemplate<W> for Template4_50008 {
+    #[rustfmt::skip]
+    fn debug_info(&self, writer: &mut W) -> std::io::Result<()>
+    where
+        W: std::io::Write,
+    {
+        writeln!(writer, "    パラメータ番号: {}", self.parameter_number)?;
+        writeln!(writer, "    作成処理の種類: {}", self.type_of_generating_process)?;
+        writeln!(writer, "    背景作成処理識別符: {}", self.background_process)?;
+        writeln!(writer, "    観測資料の参照時刻からの締切時間(時): {}", self.hours_after_data_cutoff)?;
+        writeln!(writer, "    観測資料の参照時刻からの締切時間(分): {}", self.minutes_after_data_cutoff)?;
+        writeln!(writer, "    期間の単位の指示符: {}", self.indicator_of_unit_of_time_range)?;
+        writeln!(writer, "    予報時間（分）: {}", self.forecast_time)?;
+        writeln!(writer, "    第一固定面の種類: {}", self.type_of_first_fixed_surface)?;
+        writeln!(writer, "    全時間間隔の終了時: {}", self.end_of_all_time_intervals)?;
+        writeln!(writer, "    統計を算出するために使用した時間間隔を記述する期間の仕様の数: {}", self.number_of_time_range_specs)?;
+        writeln!(writer, "    統計処理における欠測資料の総数: {}", self.number_of_missing_values)?;
+        writeln!(writer, "    統計処理の種類: {}", self.type_of_stat_proc)?;
+        writeln!(writer, "    統計処理の時間増分の種類: {}", self.type_of_stat_proc_time_increment)?;
+        writeln!(writer, "    統計処理の時間の単位の指示符: {}", self.stat_proc_time_unit)?;
+        writeln!(writer, "    統計処理した期間の長さ: {}", self.stat_proc_time_length)?;
+        writeln!(writer, "    連続的な資料場間の増分に関する時間の単位の指示符: {}", self.successive_time_unit)?;
+        writeln!(writer, "    続的な資料場間の時間の増分: {}", self.successive_time_increment)?;
+        writeln!(writer, "    レーダー等運用情報その1: 0x{:02X}", self.radar_info1)?;
+        writeln!(writer, "    レーダー等運用情報その2: 0x{:02X}", self.radar_info2)?;
+        writeln!(writer, "    雨量計運用情報: 0x{:02X}", self.rain_gauge_info)?;
+
+        Ok(())
+    }
+}
+
 impl<T5> FromReader for Section5<T5>
 where
     T5: FromReaderWithTemplateSize,
@@ -1405,6 +1562,23 @@ impl<T5> Section5<T5> {
     pub fn bits_per_value(&self) -> u8 {
         self.bits_per_value
     }
+
+    /// 第5節:資料表現節を出力する。
+    #[rustfmt::skip]
+    pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
+    where
+        W: std::io::Write,
+        T5: DebugTemplate<W>,
+    {
+        writeln!(writer, "第5節:資料表現節")?;
+        writeln!(writer, "    節の長さ: {}", self.section_bytes())?;
+        writeln!(writer, "    全資料点の数: {}", self.number_of_values())?;
+        writeln!(writer, "    資料表現テンプレート番号: {}", self.data_representation_template_number())?;
+        writeln!(writer, "    1データのビット数: {}", self.bits_per_value())?;
+        self.template5.debug_info(writer)?;
+
+        Ok(())
+    }
 }
 
 impl Section5<Template5_200> {
@@ -1484,6 +1658,23 @@ impl FromReaderWithTemplateSize for Template5_200 {
     }
 }
 
+impl<W> DebugTemplate<W> for Template5_200 {
+    #[rustfmt::skip]
+    fn debug_info(&self, writer: &mut W) -> std::io::Result<()>
+    where
+        W: std::io::Write,
+    {
+        writeln!(writer, "    今回の圧縮に用いたレベルの最大値: {}", self.max_level_value)?;
+        writeln!(writer, "    データの取り得るレベルの最大値: {}", self.number_of_level_values)?;
+        writeln!(writer, "    データ代表値の尺度因子: {}", self.decimal_scale_factor)?;
+        writeln!(writer, "    レベルmに対応するデータ代表値:")?;
+        for (i, level_value) in self.level_values.iter().enumerate() {
+            writeln!(writer, "        レベル{}: {}", i + 1, level_value)?;
+        }
+
+        Ok(())
+    }
+}
 impl FromReader for Section6 {
     fn from_reader(reader: &mut FileReader) -> ReaderResult<Self> {
         // 節の長さ: 4バイト
@@ -1522,6 +1713,19 @@ impl Section6 {
     pub fn bitmap_indicator(&self) -> u8 {
         self.bitmap_indicator
     }
+
+    /// 第6節:ビットマップ節を出力する。
+    #[rustfmt::skip]
+    pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
+    where
+        W: std::io::Write,
+    {
+        writeln!(writer, "第6節:ビットマップ節")?;
+        writeln!(writer, "    節の長さ: {}", self.section_bytes())?;
+        writeln!(writer, "    ビットマップ指示符数: {}", self.bitmap_indicator())?;
+
+        Ok(())
+    }
 }
 
 impl<T7> FromReader for Section7<T7>
@@ -1556,6 +1760,20 @@ impl<T7> Section7<T7> {
     /// 節の長さ
     pub fn section_bytes(&self) -> usize {
         self.section_bytes
+    }
+
+    /// 第7節:資料節を出力する。
+    #[rustfmt::skip]
+    pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
+    where
+        W: std::io::Write,
+        T7: DebugTemplate<W>
+    {
+        writeln!(writer, "第7節:資料節")?;
+        writeln!(writer, "    節の長さ: {}", self.section_bytes())?;
+        self.template7.debug_info(writer)?;
+
+        Ok(())
     }
 }
 
@@ -1599,6 +1817,19 @@ impl FromReaderWithTemplateSize for Template7_200 {
             run_length_position,
             run_length_bytes: template_bytes,
         })
+    }
+}
+
+impl<W> DebugTemplate<W> for Template7_200 {
+    #[rustfmt::skip]
+    fn debug_info(&self, writer: &mut W) -> std::io::Result<()>
+    where
+        W: std::io::Write,
+    {
+        writeln!(writer, "    ランレングス圧縮符号開始位置: 0x{:08X}", self.run_length_position)?;
+        writeln!(writer, "    ランレングス圧縮符号長さ: 0x{:08X}", self.run_length_bytes)?;
+
+        Ok(())
     }
 }
 
@@ -1730,4 +1961,10 @@ pub(crate) trait FromReaderWithTemplateSize {
     fn from_reader(reader: &mut FileReader, template_bytes: usize) -> ReaderResult<Self>
     where
         Self: Sized;
+}
+
+pub trait DebugTemplate<W> {
+    fn debug_info(&self, writer: &mut W) -> std::io::Result<()>
+    where
+        W: std::io::Write;
 }
