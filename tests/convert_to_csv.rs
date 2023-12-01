@@ -5,7 +5,7 @@ use grib2::reader::Grib2Reader;
 
 #[test]
 #[ignore]
-fn test() {
+fn convert_to_csv() {
     // GRIB2ファイルを読み込みCSVファイルに座標を出力
     let input = "resources/sample.bin";
     let mut reader = Grib2Reader::new(input).unwrap();
