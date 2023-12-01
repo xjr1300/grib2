@@ -40,6 +40,8 @@ pub struct Grib2ValueIter<'a> {
     returning_times: u32,
     /// 読み込んだ座標数
     number_of_reads: u32,
+    /// 最後に読み込んだランレングス圧縮符号
+    last_run_length: Option<u16>,
 }
 
 impl<'a> Grib2ValueIter<'a> {
@@ -86,6 +88,7 @@ impl<'a> Grib2ValueIter<'a> {
             current_value: None,
             returning_times: 0,
             number_of_reads: 0,
+            last_run_length: None,
         }
     }
 
@@ -99,21 +102,15 @@ impl<'a> Grib2ValueIter<'a> {
         Ok(u8::from_be_bytes(buf))
     }
 
-    fn seek_relative(&mut self, offset: i64) -> ReaderResult<()> {
-        self.reader.seek_relative(offset).map_err(|_| {
-            ReaderError::ReadError("ランレングス圧縮オクテットのシークに失敗しました。".into())
-        })?;
-        self.read_bytes = (self.read_bytes as i64 + offset) as usize;
-
-        Ok(())
-    }
-
     fn retrieve_run_length(&mut self) -> ReaderResult<Vec<u16>> {
         let mut run_length: Vec<u16> = vec![];
+        if self.last_run_length.is_some() {
+            run_length.push(self.last_run_length.unwrap());
+        }
         loop {
             let value = self.read_u8()? as u16;
             if value <= self.maxv && !run_length.is_empty() {
-                self.seek_relative(-1)?;
+                self.last_run_length = Some(value);
                 break;
             } else {
                 run_length.push(value);
