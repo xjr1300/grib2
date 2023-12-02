@@ -1491,7 +1491,11 @@ where
         validate_u8(reader, 7, "第7節:節番号")?;
         // テンプレート7
         let template_bytes = section_bytes - (4 + 1);
-        let template7 = T7::from_reader(reader, 200, template_bytes)?;
+        let template7 = T7::from_reader(
+            reader,
+            RUN_LENGTH_DATA_REPRESENTATION_TEMPLATE_NUMBER,
+            template_bytes,
+        )?;
 
         Ok(Self {
             section_bytes,
@@ -1593,20 +1597,29 @@ impl<W> DebugTemplate<W> for Template7_200 {
 
 impl FromReader for Section8 {
     fn from_reader(reader: &mut FileReader) -> ReaderResult<Self> {
-        let value = read_str(reader, 4).map_err(|e| {
-            ReaderError::ReadError(format!("第8節の読み込みに失敗しました。{:?}", e).into())
-        })?;
-        if value != SECTION8_END_MARKER {
-            return Err(ReaderError::ReadError(
-                format!(
-                    "第8節の終了が不正です。ファイルを正確に読み込めなかった可能性があります。expected: {}, actual: {}",
-                    SECTION8_END_MARKER, value
-                )
-                .into(),
-            ));
+        // 第8節:終端マーカー
+        let value = read_str(reader, 4);
+        match value {
+            Ok(value) => {
+                if value == SECTION8_END_MARKER {
+                    Ok(Self {})
+                } else {
+                    Err(ReaderError::Unexpected(
+                        format!(
+                            "第8節の終了が不正です。ファイルを正確に読み込めなかった可能性があります。expected: {}, actual: {}",
+                            SECTION8_END_MARKER, value
+                        )
+                        .into(),
+                    ))
+                }
+            }
+            Err(_) => {
+                return Err(ReaderError::ReadError(
+                    "第8節の終了が不正です。ファイルを正確に読み込めなかった可能性があります。"
+                        .into(),
+                ));
+            }
         }
-
-        Ok(Self {})
     }
 }
 
