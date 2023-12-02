@@ -1597,20 +1597,29 @@ impl<W> DebugTemplate<W> for Template7_200 {
 
 impl FromReader for Section8 {
     fn from_reader(reader: &mut FileReader) -> ReaderResult<Self> {
-        let value = read_str(reader, 4).map_err(|e| {
-            ReaderError::ReadError(format!("第8節の読み込みに失敗しました。{:?}", e).into())
-        })?;
-        if value != SECTION8_END_MARKER {
-            return Err(ReaderError::ReadError(
-                format!(
-                    "第8節の終了が不正です。ファイルを正確に読み込めなかった可能性があります。expected: {}, actual: {}",
-                    SECTION8_END_MARKER, value
-                )
-                .into(),
-            ));
+        // 第8節:終端マーカー
+        let value = read_str(reader, 4);
+        match value {
+            Ok(value) => {
+                if value == SECTION8_END_MARKER {
+                    Ok(Self {})
+                } else {
+                    Err(ReaderError::Unexpected(
+                        format!(
+                            "第8節の終了が不正です。ファイルを正確に読み込めなかった可能性があります。expected: {}, actual: {}",
+                            SECTION8_END_MARKER, value
+                        )
+                        .into(),
+                    ))
+                }
+            }
+            Err(_) => {
+                return Err(ReaderError::ReadError(
+                    "第8節の終了が不正です。ファイルを正確に読み込めなかった可能性があります。"
+                        .into(),
+                ));
+            }
         }
-
-        Ok(Self {})
     }
 }
 
