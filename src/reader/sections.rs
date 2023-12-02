@@ -11,13 +11,13 @@ const EDITION_NUMBER: u8 = 2;
 const SECTION1_BYTES: u32 = 21;
 
 /// 第3節:格子系定義テンプレート番号
-const GRID_DEFINITION_TEMPLATE_NUMBER: u16 = 0;
+const LAT_LON_GRID_DEFINITION_TEMPLATE_NUMBER: u16 = 0; // 緯度・経度格子
 
-/// 第４節:パラメーターカテゴリー
-const PARAMETER_CATEGORY: u8 = 1;
+/// 第４節:プロダクト定義テンプレート番号
+const RADAR_PRODUCT_DEFINITION_TEMPLATE_NUMBER: u16 = 50008; // レーダーなどに基づく解析プロダクト
 
 /// 第5節:資料表現テンプレート番号
-const DATA_REPRESENTATION_TEMPLATE_NUMBER: u16 = 200;
+const RUN_LENGTH_DATA_REPRESENTATION_TEMPLATE_NUMBER: u16 = 200; // ランレングス圧縮
 
 /// 第6節:節の長さ（バイト）
 const SECTION6_BYTES: u32 = 6;
@@ -533,7 +533,7 @@ impl Section2 {
 
 impl<T3> FromReader for Section3<T3>
 where
-    T3: FromReader,
+    T3: TemplateFromReader<u16>,
 {
     /// GRIB2ファイルから第3節:格子系定義節を読み込む。
     ///
@@ -578,14 +578,14 @@ where
         })?;
 
         // 格子系定義テンプレート番号: 2バイト
-        let grid_definition_template_number = validate_u16(
-            reader,
-            GRID_DEFINITION_TEMPLATE_NUMBER,
-            "格子系定義テンプレート番号",
-        )?;
+        let grid_definition_template_number = read_u16(reader).map_err(|_| {
+            ReaderError::ReadError(
+                "第3節:格子系定義テンプレート番号の読み込みに失敗しました。".into(),
+            )
+        })?;
 
         // テンプレート3
-        let template = T3::from_reader(reader)?;
+        let template = T3::from_reader(reader, grid_definition_template_number)?;
 
         Ok(Self {
             section_bytes,
@@ -819,8 +819,18 @@ impl Section3<Template3_0> {
     }
 }
 
-impl FromReader for Template3_0 {
-    fn from_reader(reader: &mut FileReader) -> ReaderResult<Self> {
+impl TemplateFromReader<u16> for Template3_0 {
+    fn from_reader(reader: &mut FileReader, template_number: u16) -> ReaderResult<Self> {
+        // 格子系定義テンプレート番号を確認
+        if template_number != LAT_LON_GRID_DEFINITION_TEMPLATE_NUMBER {
+            return Err(ReaderError::ReadError(
+                format!(
+                    "第3節:格子系定義テンプレート番号が{}であることを想定していましたが{}でした。",
+                    LAT_LON_GRID_DEFINITION_TEMPLATE_NUMBER, template_number
+                )
+                .into(),
+            ));
+        }
         // 地球の形状: 1バイト
         let shape_of_earth = read_u8(reader).map_err(|_| {
             ReaderError::ReadError("第3節:地球の形状の読み込みに失敗しました。".into())
@@ -993,7 +1003,7 @@ impl<W> DebugTemplate<W> for Template3_0 {
 
 impl<T4> FromReader for Section4<T4>
 where
-    T4: FromReader,
+    T4: TemplateFromReader<u16>,
 {
     fn from_reader(reader: &mut FileReader) -> ReaderResult<Self> {
         // 節の長さ: 4バイト
@@ -1019,10 +1029,12 @@ where
         })?;
 
         // パラメータカテゴリー: 1バイト
-        let parameter_category = validate_u8(reader, PARAMETER_CATEGORY, "パラメーターカテゴリー")?;
+        let parameter_category = read_u8(reader).map_err(|_| {
+            ReaderError::ReadError("第4節:パラメータカテゴリーの読み込みに失敗しました。".into())
+        })?;
 
         // テンプレート4
-        let template4 = T4::from_reader(reader)?;
+        let template4 = T4::from_reader(reader, product_definition_template_number)?;
 
         Ok(Self {
             section_bytes,
@@ -1271,8 +1283,19 @@ impl Section4<Template4_50008> {
     }
 }
 
-impl FromReader for Template4_50008 {
-    fn from_reader(reader: &mut FileReader) -> ReaderResult<Self> {
+impl TemplateFromReader<u16> for Template4_50008 {
+    fn from_reader(reader: &mut FileReader, template_number: u16) -> ReaderResult<Self> {
+        // プロダクト定義テンプレート番号を確認
+        if template_number != RADAR_PRODUCT_DEFINITION_TEMPLATE_NUMBER {
+            return Err(ReaderError::ReadError(
+                format!(
+                    "第4節:プロダクト定義テンプレート番号が{}であることを想定していましたが{}でした。",
+                    RADAR_PRODUCT_DEFINITION_TEMPLATE_NUMBER, template_number
+                )
+                .into(),
+            ));
+        }
+
         // パラメータ番号: 1バイト
         let parameter_number = read_u8(reader).map_err(|_| {
             ReaderError::ReadError("第4節:パラメータ番号の読み込みに失敗しました。".into())
@@ -1484,7 +1507,7 @@ impl<W> DebugTemplate<W> for Template4_50008 {
 
 impl<T5> FromReader for Section5<T5>
 where
-    T5: FromReaderWithTemplateSize,
+    T5: TemplateFromReaderWithSize<u16>,
 {
     fn from_reader(reader: &mut FileReader) -> ReaderResult<Self> {
         // 節の長さ: 4バイト
@@ -1501,11 +1524,11 @@ where
         })?;
 
         // 資料表現テンプレート番号: 2バイト
-        let data_representation_template_number = validate_u16(
-            reader,
-            DATA_REPRESENTATION_TEMPLATE_NUMBER,
-            "資料表現テンプレート番号",
-        )?;
+        let data_representation_template_number = read_u16(reader).map_err(|_| {
+            ReaderError::ReadError(
+                "第5節:資料表現テンプレート番号の読み込みに失敗しました。".into(),
+            )
+        })?;
 
         // 1データのビット数: 1バイト
         let bits_per_value = read_u8(reader).map_err(|_| {
@@ -1514,7 +1537,8 @@ where
 
         // テンプレート5
         let template_bytes = section_bytes - (4 + 1 + 4 + 2 + 1);
-        let template5 = T5::from_reader(reader, template_bytes)?;
+        let template5 =
+            T5::from_reader(reader, data_representation_template_number, template_bytes)?;
 
         Ok(Self {
             section_bytes,
@@ -1619,8 +1643,23 @@ impl Section5<Template5_200> {
     }
 }
 
-impl FromReaderWithTemplateSize for Template5_200 {
-    fn from_reader(reader: &mut FileReader, template_bytes: usize) -> ReaderResult<Self> {
+impl TemplateFromReaderWithSize<u16> for Template5_200 {
+    fn from_reader(
+        reader: &mut FileReader,
+        template_number: u16,
+        template_bytes: usize,
+    ) -> ReaderResult<Self> {
+        // 資料表現テンプレート番号を確認
+        if template_number != RUN_LENGTH_DATA_REPRESENTATION_TEMPLATE_NUMBER {
+            return Err(ReaderError::ReadError(
+                format!(
+                    "第5節:資料表現テンプレート番号が{}であることを想定していましたが{}でした。",
+                    RUN_LENGTH_DATA_REPRESENTATION_TEMPLATE_NUMBER, template_number
+                )
+                .into(),
+            ));
+        }
+
         // 今回の圧縮に用いたレベルの最大値: 2バイト
         let max_level_value = read_u16(reader).map_err(|_| {
             ReaderError::ReadError(
@@ -1730,7 +1769,7 @@ impl Section6 {
 
 impl<T7> FromReader for Section7<T7>
 where
-    T7: FromReaderWithTemplateSize,
+    T7: TemplateFromReaderWithSize<u16>,
 {
     fn from_reader(reader: &mut FileReader) -> ReaderResult<Self> {
         // 節の長さ: 4バイト
@@ -1743,7 +1782,7 @@ where
 
         // テンプレート7
         let template_bytes = section_bytes - (4 + 1);
-        let template7 = T7::from_reader(reader, template_bytes)?;
+        let template7 = T7::from_reader(reader, 200, template_bytes)?;
 
         Ok(Self {
             section_bytes,
@@ -1797,8 +1836,23 @@ impl Section7<Template7_200> {
     }
 }
 
-impl FromReaderWithTemplateSize for Template7_200 {
-    fn from_reader(reader: &mut FileReader, template_bytes: usize) -> ReaderResult<Self> {
+impl TemplateFromReaderWithSize<u16> for Template7_200 {
+    fn from_reader(
+        reader: &mut FileReader,
+        template_number: u16,
+        template_bytes: usize,
+    ) -> ReaderResult<Self> {
+        // 資料表現テンプレート番号を確認
+        if template_number != RUN_LENGTH_DATA_REPRESENTATION_TEMPLATE_NUMBER {
+            return Err(ReaderError::ReadError(
+                format!(
+                    "第7節:資料表現テンプレート番号が{}であることを想定していましたが{}でした。",
+                    RUN_LENGTH_DATA_REPRESENTATION_TEMPLATE_NUMBER, template_number
+                )
+                .into(),
+            ));
+        }
+
         // ランレングス圧縮符号列の開始位置を記憶
         let run_length_position = reader.stream_position().map_err(|_| {
             ReaderError::ReadError(
@@ -1899,7 +1953,6 @@ macro_rules! validate_number {
 }
 
 validate_number!(validate_u8, read_u8, u8);
-validate_number!(validate_u16, read_u16, u16);
 validate_number!(validate_u32, read_u32, u32);
 
 fn read_str(reader: &mut FileReader, size: usize) -> ReaderResult<String> {
@@ -1952,18 +2005,63 @@ fn read_datetime(reader: &mut FileReader) -> ReaderResult<PrimitiveDateTime> {
 }
 
 pub(crate) trait FromReader {
+    /// 節を読み込む。
+    ///
+    /// # 引数
+    ///
+    /// * `reader` - ファイルリーダ
+    ///
+    /// # 戻り値
+    ///
+    /// 節
     fn from_reader(reader: &mut FileReader) -> ReaderResult<Self>
     where
         Self: Sized;
 }
 
-pub(crate) trait FromReaderWithTemplateSize {
-    fn from_reader(reader: &mut FileReader, template_bytes: usize) -> ReaderResult<Self>
+pub(crate) trait TemplateFromReader<T> {
+    /// テンプレートを読み込む。
+    ///
+    /// # 引数
+    ///
+    /// * `reader` - ファイルリーダ
+    /// * `template_number` - テンプレート番号
+    ///
+    /// # 戻り値
+    ///
+    /// テンプレート
+    fn from_reader(reader: &mut FileReader, template_number: T) -> ReaderResult<Self>
+    where
+        Self: Sized;
+}
+
+pub(crate) trait TemplateFromReaderWithSize<T> {
+    /// テンプレートを読み込む。
+    ///
+    /// # 引数
+    ///
+    /// * `reader` - ファイルリーダ
+    /// * `template_number` - テンプレート番号
+    /// * `template_bytes` - テンプレートのバイト数
+    ///
+    /// # 戻り値
+    ///
+    /// テンプレート
+    fn from_reader(
+        reader: &mut FileReader,
+        template_number: T,
+        template_bytes: usize,
+    ) -> ReaderResult<Self>
     where
         Self: Sized;
 }
 
 pub trait DebugTemplate<W> {
+    /// テンプレートのデバッグ情報を出力する。
+    ///
+    /// # 引数
+    ///
+    /// * `writer` - 出力先
     fn debug_info(&self, writer: &mut W) -> std::io::Result<()>
     where
         W: std::io::Write;
