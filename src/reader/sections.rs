@@ -1491,7 +1491,11 @@ where
         validate_u8(reader, 7, "第7節:節番号")?;
         // テンプレート7
         let template_bytes = section_bytes - (4 + 1);
-        let template7 = T7::from_reader(reader, 200, template_bytes)?;
+        let template7 = T7::from_reader(
+            reader,
+            RUN_LENGTH_DATA_REPRESENTATION_TEMPLATE_NUMBER,
+            template_bytes,
+        )?;
 
         Ok(Self {
             section_bytes,
