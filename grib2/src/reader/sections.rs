@@ -139,15 +139,19 @@ pub struct Template3_0 {
 }
 
 /// 第4節:プロダクト定義節
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Getter)]
 pub struct Section4<T4> {
     /// 節の長さ
+    #[getter(ret = "val")]
     section_bytes: usize,
     /// テンプレート直後の座標値の数
+    #[getter(ret = "val")]
     number_of_after_template_points: u16,
     /// プロダクト定義テンプレート番号
+    #[getter(ret = "val")]
     product_definition_template_number: u16,
     /// パラメータカテゴリー
+    #[getter(ret = "val")]
     parameter_category: u8,
     /// テンプレート4
     template4: T4,
@@ -751,42 +755,6 @@ where
 }
 
 impl<T4> Section4<T4> {
-    /// 節の長さを返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 節の長さ
-    pub fn section_bytes(&self) -> usize {
-        self.section_bytes
-    }
-
-    /// テンプレート直後の座標値の数を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// テンプレート直後の座標値の数
-    pub fn number_of_after_template_points(&self) -> u16 {
-        self.number_of_after_template_points
-    }
-
-    /// プロダクト定義テンプレート番号を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// プロダクト定義テンプレート番号
-    pub fn product_definition_template_number(&self) -> u16 {
-        self.product_definition_template_number
-    }
-
-    /// パラメータカテゴリーを返す。
-    ///
-    /// # 戻り値
-    ///
-    /// パラメータカテゴリー
-    pub fn parameter_category(&self) -> u8 {
-        self.parameter_category
-    }
-
     /// 第4節:プロダクト定義節を出力する。
     #[rustfmt::skip]
     pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
