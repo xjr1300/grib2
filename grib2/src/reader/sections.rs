@@ -3,6 +3,7 @@ use std::io::{Read, Seek};
 use time::{Date, Month, PrimitiveDateTime, Time};
 
 use super::{FileReader, ReaderError, ReaderResult};
+use macros::Getter;
 
 /// 第0節:GRIB版番号
 const EDITION_NUMBER: u8 = 2;
@@ -26,36 +27,48 @@ const SECTION6_BYTES: u32 = 6;
 const SECTION8_END_MARKER: &str = "7777";
 
 /// 第0節:指示節
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Getter)]
 pub struct Section0 {
     /// 資料分野
+    #[getter(ret = "val")]
     discipline: u8,
     /// GRIB版番号
+    #[getter(ret = "val")]
     edition_number: u8,
     /// GRIB報全体のバイト数
+    #[getter(ret = "val")]
     total_length: usize,
 }
 
 /// 第1節:識別節
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Getter)]
 pub struct Section1 {
     /// 節の長さ
+    #[getter(ret = "val")]
     section_bytes: usize,
     /// 作成中枢の識別
+    #[getter(ret = "val")]
     center: u16,
     /// 作成副中枢
+    #[getter(ret = "val")]
     sub_center: u16,
     /// GRIBマスター表バージョン番号
+    #[getter(ret = "val")]
     table_version: u8,
     /// GRIB地域表バージョン番号
+    #[getter(ret = "val")]
     local_table_version: u8,
     /// 参照時刻の意味
+    #[getter(ret = "val")]
     significance_of_reference_time: u8,
     /// 資料の参照時刻
+    #[getter(ret = "val")]
     referenced_at: PrimitiveDateTime,
     /// 作成ステータス
+    #[getter(ret = "val")]
     production_status_of_processed_data: u8,
     /// 資料の種類
+    #[getter(ret = "val")]
     type_of_processed_data: u8,
 }
 
@@ -64,19 +77,25 @@ pub struct Section1 {
 pub struct Section2;
 
 /// 第3節:格子系定義節
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Getter)]
 pub struct Section3<T3> {
     /// 節の長さ
+    #[getter(ret = "val")]
     section_bytes: usize,
     /// 格子系定義の出典
+    #[getter(ret = "val")]
     source_of_grid_definition: u8,
     /// 第3節に記録されている資料点数
+    #[getter(ret = "val")]
     number_of_data_points: u32,
     /// 格子点数を定義するリストのオクテット数
+    #[getter(ret = "val")]
     number_of_octets_for_number_of_points: u8,
     /// 格子点数を定義するリストの説明
+    #[getter(ret = "val")]
     interpretation_of_number_of_points: u8,
     /// 格子系定義テンプレート番号
+    #[getter(ret = "val")]
     grid_definition_template_number: u16,
     /// テンプレート3
     template3: T3,
@@ -120,15 +139,19 @@ pub struct Template3_0 {
 }
 
 /// 第4節:プロダクト定義節
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Getter)]
 pub struct Section4<T4> {
     /// 節の長さ
+    #[getter(ret = "val")]
     section_bytes: usize,
     /// テンプレート直後の座標値の数
+    #[getter(ret = "val")]
     number_of_after_template_points: u16,
     /// プロダクト定義テンプレート番号
+    #[getter(ret = "val")]
     product_definition_template_number: u16,
     /// パラメータカテゴリー
+    #[getter(ret = "val")]
     parameter_category: u8,
     /// テンプレート4
     template4: T4,
@@ -180,15 +203,19 @@ pub struct Template4_50008 {
 }
 
 /// 第5節:資料表現節
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Getter)]
 pub struct Section5<T5> {
     /// 節の長さ
+    #[getter(ret = "val")]
     section_bytes: usize,
     /// 全資料点の数
+    #[getter(ret = "val")]
     number_of_values: u32,
     /// 資料表現テンプレート番号
+    #[getter(ret = "val")]
     data_representation_template_number: u16,
     /// 1データのビット数
+    #[getter(ret = "val")]
     bits_per_value: u8,
     /// テンプレート5
     template5: T5,
@@ -209,17 +236,21 @@ pub struct Template5_200 {
 }
 
 /// 第6節:ビットマップ節
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Getter)]
 pub struct Section6 {
     /// 節の長さ
+    #[getter(ret = "val")]
     section_bytes: usize,
     /// ビットマップ指示符
+    #[getter(ret = "val")]
     bitmap_indicator: u8,
 }
 
 /// 第７節:資料節
+#[derive(Debug, Clone, Copy, Getter)]
 pub struct Section7<T7> {
     /// 節の長さ
+    #[getter(ret = "val")]
     section_bytes: usize,
     /// テンプレート7
     template7: T7,
@@ -282,34 +313,6 @@ impl FromReader for Section0 {
 }
 
 impl Section0 {
-    /// 資料分野を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 資料分野
-    pub fn discipline(&self) -> u8 {
-        self.discipline
-    }
-
-    /// GRIB版番号を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// GRIB版番号
-    pub fn edition_number(&self) -> u8 {
-        self.edition_number
-    }
-
-    /// GRIB報全体のバイト数を返す。
-    ///
-    ///
-    /// # 戻り値
-    ///
-    /// GRIB報全体のバイト数
-    pub fn total_length(&self) -> usize {
-        self.total_length
-    }
-
     /// 第0節:指示節を出力する。
     #[rustfmt::skip]
     pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
@@ -372,87 +375,6 @@ impl FromReader for Section1 {
 }
 
 impl Section1 {
-    /// 節の長さを返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 節の長さ
-    pub fn section_bytes(&self) -> usize {
-        self.section_bytes
-    }
-
-    /// 作成中枢の識別を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 作成中枢の識別
-    pub fn center(&self) -> u16 {
-        self.center
-    }
-
-    /// 作成副中枢を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 作成副中枢
-    pub fn sub_center(&self) -> u16 {
-        self.sub_center
-    }
-
-    /// GRIBマスター表バージョン番号を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// GRIBマスター表バージョン番号
-    pub fn table_version(&self) -> u8 {
-        self.table_version
-    }
-
-    /// GRIB地域表バージョン番号を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// GRIB地域表バージョン番号
-    pub fn local_table_version(&self) -> u8 {
-        self.local_table_version
-    }
-
-    /// 参照時刻の意味を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 参照時刻の意味
-    pub fn significance_of_reference_time(&self) -> u8 {
-        self.significance_of_reference_time
-    }
-
-    /// 資料の参照時刻を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 資料の参照時刻
-    pub fn referenced_at(&self) -> PrimitiveDateTime {
-        self.referenced_at
-    }
-
-    /// 作成ステータスを返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 作成ステータス
-    pub fn production_status_of_processed_data(&self) -> u8 {
-        self.production_status_of_processed_data
-    }
-
-    /// 資料の種類を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 資料の種類
-    pub fn type_of_processed_data(&self) -> u8 {
-        self.type_of_processed_data
-    }
-
     /// 第1節:識別節を出力する。
     #[rustfmt::skip]
     pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
@@ -546,60 +468,6 @@ where
 }
 
 impl<T3> Section3<T3> {
-    /// 節の長さを返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 節の長さ
-    pub fn section_bytes(&self) -> usize {
-        self.section_bytes
-    }
-
-    /// 格子系定義の出典を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 格子系定義の出典
-    pub fn source_of_grid_definition(&self) -> u8 {
-        self.source_of_grid_definition
-    }
-
-    /// 第3節に記録されている資料点数を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 第3節に記録されている資料点数
-    pub fn number_of_data_points(&self) -> u32 {
-        self.number_of_data_points
-    }
-
-    /// 格子点数を定義するリストのオクテット数を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 格子点数を定義するリストのオクテット数
-    pub fn number_of_octets_for_number_of_points(&self) -> u8 {
-        self.number_of_octets_for_number_of_points
-    }
-
-    /// 格子点数を定義するリストの説明を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 格子点数を定義するリストの説明
-    pub fn interpretation_of_number_of_points(&self) -> u8 {
-        self.interpretation_of_number_of_points
-    }
-
-    /// 格子系定義テンプレート番号を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 格子系定義テンプレート番号
-    pub fn grid_definition_template_number(&self) -> u16 {
-        self.grid_definition_template_number
-    }
-
     #[rustfmt::skip]
     pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
     where
@@ -895,42 +763,6 @@ where
 }
 
 impl<T4> Section4<T4> {
-    /// 節の長さを返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 節の長さ
-    pub fn section_bytes(&self) -> usize {
-        self.section_bytes
-    }
-
-    /// テンプレート直後の座標値の数を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// テンプレート直後の座標値の数
-    pub fn number_of_after_template_points(&self) -> u16 {
-        self.number_of_after_template_points
-    }
-
-    /// プロダクト定義テンプレート番号を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// プロダクト定義テンプレート番号
-    pub fn product_definition_template_number(&self) -> u16 {
-        self.product_definition_template_number
-    }
-
-    /// パラメータカテゴリーを返す。
-    ///
-    /// # 戻り値
-    ///
-    /// パラメータカテゴリー
-    pub fn parameter_category(&self) -> u8 {
-        self.parameter_category
-    }
-
     /// 第4節:プロダクト定義節を出力する。
     #[rustfmt::skip]
     pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
@@ -1288,42 +1120,6 @@ where
 }
 
 impl<T5> Section5<T5> {
-    /// 節の長さを返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 節の長さ
-    pub fn section_bytes(&self) -> usize {
-        self.section_bytes
-    }
-
-    /// 全資料点の数を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 全資料点の数
-    pub fn number_of_values(&self) -> u32 {
-        self.number_of_values
-    }
-
-    /// 資料表現テンプレート番号を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 資料表現テンプレート番号
-    pub fn data_representation_template_number(&self) -> u16 {
-        self.data_representation_template_number
-    }
-
-    /// 1データのビット数を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 1データのビット数
-    pub fn bits_per_value(&self) -> u8 {
-        self.bits_per_value
-    }
-
     /// 第5節:資料表現節を出力する。
     #[rustfmt::skip]
     pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
@@ -1448,24 +1244,6 @@ impl FromReader for Section6 {
 }
 
 impl Section6 {
-    /// 節の長さを返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 節の長さ
-    pub fn section_bytes(&self) -> usize {
-        self.section_bytes
-    }
-
-    /// ビットマップ指示符を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// ビットマップ指示符
-    pub fn bitmap_indicator(&self) -> u8 {
-        self.bitmap_indicator
-    }
-
     /// 第6節:ビットマップ節を出力する。
     #[rustfmt::skip]
     pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
@@ -1505,15 +1283,6 @@ where
 }
 
 impl<T7> Section7<T7> {
-    /// 節の長さを返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 節の長さ
-    pub fn section_bytes(&self) -> usize {
-        self.section_bytes
-    }
-
     /// 第7節:資料節を出力する。
     #[rustfmt::skip]
     pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
@@ -1613,12 +1382,9 @@ impl FromReader for Section8 {
                     ))
                 }
             }
-            Err(_) => {
-                return Err(ReaderError::ReadError(
-                    "第8節の終了が不正です。ファイルを正確に読み込めなかった可能性があります。"
-                        .into(),
-                ));
-            }
+            Err(_) => Err(ReaderError::ReadError(
+                "第8節の終了が不正です。ファイルを正確に読み込めなかった可能性があります。".into(),
+            )),
         }
     }
 }
