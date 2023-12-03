@@ -48,12 +48,12 @@ pub fn derive_getter(input: TokenStream) -> TokenStream {
 /// テンプレートゲッター導出マクロ
 ///
 /// ```rust
-/// struct Section2<T2> {
+/// pub struct Section2<T2> {
 ///     template2: T2,
 /// }
 ///
 /// #[derive(TemplateGetter(section="Section2", member="template2"))]
-/// struct Template2 {
+/// pub struct Template2 {
 ///     #[getter(ret="val")]
 ///     a: i32,
 ///     #[getter(ret="ref")]
