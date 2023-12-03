@@ -3,6 +3,7 @@ use std::io::{Read, Seek};
 use time::{Date, Month, PrimitiveDateTime, Time};
 
 use super::{FileReader, ReaderError, ReaderResult};
+use macros::Getter;
 
 /// 第0節:GRIB版番号
 const EDITION_NUMBER: u8 = 2;
@@ -26,13 +27,16 @@ const SECTION6_BYTES: u32 = 6;
 const SECTION8_END_MARKER: &str = "7777";
 
 /// 第0節:指示節
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Getter)]
 pub struct Section0 {
     /// 資料分野
+    #[getter(ret = "val")]
     discipline: u8,
     /// GRIB版番号
+    #[getter(ret = "val")]
     edition_number: u8,
     /// GRIB報全体のバイト数
+    #[getter(ret = "val")]
     total_length: usize,
 }
 
@@ -282,34 +286,6 @@ impl FromReader for Section0 {
 }
 
 impl Section0 {
-    /// 資料分野を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 資料分野
-    pub fn discipline(&self) -> u8 {
-        self.discipline
-    }
-
-    /// GRIB版番号を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// GRIB版番号
-    pub fn edition_number(&self) -> u8 {
-        self.edition_number
-    }
-
-    /// GRIB報全体のバイト数を返す。
-    ///
-    ///
-    /// # 戻り値
-    ///
-    /// GRIB報全体のバイト数
-    pub fn total_length(&self) -> usize {
-        self.total_length
-    }
-
     /// 第0節:指示節を出力する。
     #[rustfmt::skip]
     pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>

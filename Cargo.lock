@@ -22,6 +22,7 @@ name = "grib2"
 version = "0.1.0"
 dependencies = [
  "gsjp",
+ "macros",
  "num-format",
  "thiserror",
  "time",
