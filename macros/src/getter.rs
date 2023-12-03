@@ -195,7 +195,7 @@ fn retrieve_template_getter_values(attr: &Attribute) -> syn::Result<TemplateGett
     Ok(TemplateGetterAttrValues { section, member })
 }
 
-pub(crate) struct GetterAttrValues {
+struct GetterAttrValues {
     /// getter属性のret属性の値
     pub ret: String,
     /// getter属性のrty属性の値
@@ -205,9 +205,7 @@ pub(crate) struct GetterAttrValues {
 // getter属性のカンマで区切られた属性を取得
 // getter(ret = "ref", rty = "&str")
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^  <- この部分を取得
-pub(crate) fn retrieve_getter_attr_values(
-    field_attr: &FieldAttrPair,
-) -> syn::Result<GetterAttrValues> {
+fn retrieve_getter_attr_values(field_attr: &FieldAttrPair) -> syn::Result<GetterAttrValues> {
     let name_values: CommaPunctuatedNameValues = field_attr
         .attr
         .parse_args_with(Punctuated::parse_terminated)
