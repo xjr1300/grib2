@@ -203,15 +203,19 @@ pub struct Template4_50008 {
 }
 
 /// 第5節:資料表現節
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Getter)]
 pub struct Section5<T5> {
     /// 節の長さ
+    #[getter(ret = "val")]
     section_bytes: usize,
     /// 全資料点の数
+    #[getter(ret = "val")]
     number_of_values: u32,
     /// 資料表現テンプレート番号
+    #[getter(ret = "val")]
     data_representation_template_number: u16,
     /// 1データのビット数
+    #[getter(ret = "val")]
     bits_per_value: u8,
     /// テンプレート5
     template5: T5,
@@ -1112,42 +1116,6 @@ where
 }
 
 impl<T5> Section5<T5> {
-    /// 節の長さを返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 節の長さ
-    pub fn section_bytes(&self) -> usize {
-        self.section_bytes
-    }
-
-    /// 全資料点の数を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 全資料点の数
-    pub fn number_of_values(&self) -> u32 {
-        self.number_of_values
-    }
-
-    /// 資料表現テンプレート番号を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 資料表現テンプレート番号
-    pub fn data_representation_template_number(&self) -> u16 {
-        self.data_representation_template_number
-    }
-
-    /// 1データのビット数を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 1データのビット数
-    pub fn bits_per_value(&self) -> u8 {
-        self.bits_per_value
-    }
-
     /// 第5節:資料表現節を出力する。
     #[rustfmt::skip]
     pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
