@@ -77,19 +77,25 @@ pub struct Section1 {
 pub struct Section2;
 
 /// 第3節:格子系定義節
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Getter)]
 pub struct Section3<T3> {
     /// 節の長さ
+    #[getter(ret = "val")]
     section_bytes: usize,
     /// 格子系定義の出典
+    #[getter(ret = "val")]
     source_of_grid_definition: u8,
     /// 第3節に記録されている資料点数
+    #[getter(ret = "val")]
     number_of_data_points: u32,
     /// 格子点数を定義するリストのオクテット数
+    #[getter(ret = "val")]
     number_of_octets_for_number_of_points: u8,
     /// 格子点数を定義するリストの説明
+    #[getter(ret = "val")]
     interpretation_of_number_of_points: u8,
     /// 格子系定義テンプレート番号
+    #[getter(ret = "val")]
     grid_definition_template_number: u16,
     /// テンプレート3
     template3: T3,
@@ -450,60 +456,6 @@ where
 }
 
 impl<T3> Section3<T3> {
-    /// 節の長さを返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 節の長さ
-    pub fn section_bytes(&self) -> usize {
-        self.section_bytes
-    }
-
-    /// 格子系定義の出典を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 格子系定義の出典
-    pub fn source_of_grid_definition(&self) -> u8 {
-        self.source_of_grid_definition
-    }
-
-    /// 第3節に記録されている資料点数を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 第3節に記録されている資料点数
-    pub fn number_of_data_points(&self) -> u32 {
-        self.number_of_data_points
-    }
-
-    /// 格子点数を定義するリストのオクテット数を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 格子点数を定義するリストのオクテット数
-    pub fn number_of_octets_for_number_of_points(&self) -> u8 {
-        self.number_of_octets_for_number_of_points
-    }
-
-    /// 格子点数を定義するリストの説明を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 格子点数を定義するリストの説明
-    pub fn interpretation_of_number_of_points(&self) -> u8 {
-        self.interpretation_of_number_of_points
-    }
-
-    /// 格子系定義テンプレート番号を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 格子系定義テンプレート番号
-    pub fn grid_definition_template_number(&self) -> u16 {
-        self.grid_definition_template_number
-    }
-
     #[rustfmt::skip]
     pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
     where
@@ -1517,12 +1469,9 @@ impl FromReader for Section8 {
                     ))
                 }
             }
-            Err(_) => {
-                return Err(ReaderError::ReadError(
-                    "第8節の終了が不正です。ファイルを正確に読み込めなかった可能性があります。"
-                        .into(),
-                ));
-            }
+            Err(_) => Err(ReaderError::ReadError(
+                "第8節の終了が不正です。ファイルを正確に読み込めなかった可能性があります。".into(),
+            )),
         }
     }
 }

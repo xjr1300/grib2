@@ -81,7 +81,7 @@ fn derive_getter_methods(input: DeriveInput) -> syn::Result<TokenStream2> {
     })
 }
 
-fn retrieve_fields_has_getter_attr<'a>(fields: &FieldCollection) -> Vec<FieldAttrPair> {
+fn retrieve_fields_has_getter_attr(fields: &FieldCollection) -> Vec<FieldAttrPair> {
     // getter属性が付与されたフィールドとgetter属性を格納するベクタ
     let mut result = vec![];
     // 構造体のフィールドを走査
@@ -112,9 +112,9 @@ fn derive_getter_method(field_attr: &FieldAttrPair, vis: &Visibility) -> syn::Re
     let mut rty: Option<Expr> = None;
     for nv in name_values {
         let att_ident = nv.path.get_ident().unwrap();
-        if att_ident.to_string() == "ret" {
+        if *att_ident == "ret" {
             ret = Some(nv.value);
-        } else if att_ident.to_string() == "rty" {
+        } else if *att_ident == "rty" {
             rty = Some(nv.value);
         }
     }
