@@ -236,17 +236,21 @@ pub struct Template5_200 {
 }
 
 /// 第6節:ビットマップ節
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Getter)]
 pub struct Section6 {
     /// 節の長さ
+    #[getter(ret = "val")]
     section_bytes: usize,
     /// ビットマップ指示符
+    #[getter(ret = "val")]
     bitmap_indicator: u8,
 }
 
 /// 第７節:資料節
+#[derive(Debug, Clone, Copy, Getter)]
 pub struct Section7<T7> {
     /// 節の長さ
+    #[getter(ret = "val")]
     section_bytes: usize,
     /// テンプレート7
     template7: T7,
@@ -1240,24 +1244,6 @@ impl FromReader for Section6 {
 }
 
 impl Section6 {
-    /// 節の長さを返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 節の長さ
-    pub fn section_bytes(&self) -> usize {
-        self.section_bytes
-    }
-
-    /// ビットマップ指示符を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// ビットマップ指示符
-    pub fn bitmap_indicator(&self) -> u8 {
-        self.bitmap_indicator
-    }
-
     /// 第6節:ビットマップ節を出力する。
     #[rustfmt::skip]
     pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
@@ -1297,15 +1283,6 @@ where
 }
 
 impl<T7> Section7<T7> {
-    /// 節の長さを返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 節の長さ
-    pub fn section_bytes(&self) -> usize {
-        self.section_bytes
-    }
-
     /// 第7節:資料節を出力する。
     #[rustfmt::skip]
     pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
