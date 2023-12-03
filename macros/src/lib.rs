@@ -2,11 +2,9 @@ use proc_macro::TokenStream;
 use syn::{parse_macro_input, DeriveInput};
 
 mod getter;
-mod template_getter;
 mod utils;
 
-use getter::derive_getter_impl;
-use template_getter::derive_template_getter_impl;
+use getter::{derive_getter_impl, derive_template_getter_impl};
 
 /// ゲッター導出マクロ
 ///
