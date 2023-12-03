@@ -41,25 +41,34 @@ pub struct Section0 {
 }
 
 /// 第1節:識別節
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Getter)]
 pub struct Section1 {
     /// 節の長さ
+    #[getter(ret = "val")]
     section_bytes: usize,
     /// 作成中枢の識別
+    #[getter(ret = "val")]
     center: u16,
     /// 作成副中枢
+    #[getter(ret = "val")]
     sub_center: u16,
     /// GRIBマスター表バージョン番号
+    #[getter(ret = "val")]
     table_version: u8,
     /// GRIB地域表バージョン番号
+    #[getter(ret = "val")]
     local_table_version: u8,
     /// 参照時刻の意味
+    #[getter(ret = "val")]
     significance_of_reference_time: u8,
     /// 資料の参照時刻
+    #[getter(ret = "val")]
     referenced_at: PrimitiveDateTime,
     /// 作成ステータス
+    #[getter(ret = "val")]
     production_status_of_processed_data: u8,
     /// 資料の種類
+    #[getter(ret = "val")]
     type_of_processed_data: u8,
 }
 
@@ -348,87 +357,6 @@ impl FromReader for Section1 {
 }
 
 impl Section1 {
-    /// 節の長さを返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 節の長さ
-    pub fn section_bytes(&self) -> usize {
-        self.section_bytes
-    }
-
-    /// 作成中枢の識別を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 作成中枢の識別
-    pub fn center(&self) -> u16 {
-        self.center
-    }
-
-    /// 作成副中枢を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 作成副中枢
-    pub fn sub_center(&self) -> u16 {
-        self.sub_center
-    }
-
-    /// GRIBマスター表バージョン番号を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// GRIBマスター表バージョン番号
-    pub fn table_version(&self) -> u8 {
-        self.table_version
-    }
-
-    /// GRIB地域表バージョン番号を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// GRIB地域表バージョン番号
-    pub fn local_table_version(&self) -> u8 {
-        self.local_table_version
-    }
-
-    /// 参照時刻の意味を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 参照時刻の意味
-    pub fn significance_of_reference_time(&self) -> u8 {
-        self.significance_of_reference_time
-    }
-
-    /// 資料の参照時刻を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 資料の参照時刻
-    pub fn referenced_at(&self) -> PrimitiveDateTime {
-        self.referenced_at
-    }
-
-    /// 作成ステータスを返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 作成ステータス
-    pub fn production_status_of_processed_data(&self) -> u8 {
-        self.production_status_of_processed_data
-    }
-
-    /// 資料の種類を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 資料の種類
-    pub fn type_of_processed_data(&self) -> u8 {
-        self.type_of_processed_data
-    }
-
     /// 第1節:識別節を出力する。
     #[rustfmt::skip]
     pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
