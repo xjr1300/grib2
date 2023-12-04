@@ -1,14 +1,16 @@
 use proc_macro::TokenStream;
 use syn::{parse_macro_input, DeriveInput};
 
+mod debug_info;
 mod getter;
 mod utils;
 
+use debug_info::derive_section_debug_info_impl;
 use getter::{derive_getter_impl, derive_template_getter_impl};
 
 /// ゲッター導出マクロ
 ///
-/// ```rust
+/// ```
 /// #[derive(Getter)]
 /// pub struct Foo {
 ///     #[getter(ret="val")]
@@ -22,7 +24,7 @@ use getter::{derive_getter_impl, derive_template_getter_impl};
 ///
 /// 上記構造体から次を導出する。
 ///
-/// ```rust
+/// ```
 /// impl Foo {
 ///     pub fn a(&self) -> i32 {
 ///         self.a
@@ -47,12 +49,13 @@ pub fn derive_getter(input: TokenStream) -> TokenStream {
 
 /// テンプレートゲッター導出マクロ
 ///
-/// ```rust
+/// ```
 /// pub struct Section2<T2> {
 ///     template2: T2,
 /// }
 ///
-/// #[derive(TemplateGetter(section="Section2", member="template2"))]
+/// #[derive(TemplateGetter)]
+/// #[template_getter(section="Section2", member="template2"))]
 /// pub struct Template2 {
 ///     #[getter(ret="val")]
 ///     a: i32,
@@ -65,7 +68,7 @@ pub fn derive_getter(input: TokenStream) -> TokenStream {
 ///
 /// 上記構造体から次を導出する。
 ///
-/// ```rust
+/// ```
 /// impl Section2<Template2> {
 ///     pub fn a(&self) -> i32 {
 ///         self.template2.a
@@ -85,6 +88,69 @@ pub fn derive_template_getter(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
     match derive_template_getter_impl(input) {
+        Ok(token_stream) => TokenStream::from(token_stream),
+        Err(err) => TokenStream::from(err.into_compile_error()),
+    }
+}
+
+/// 節デバッグ情報出力導出マクロ
+///
+/// ```
+/// #[derive(SectionDebugInfo)]
+/// #[section(number=1, name="識別節")]
+/// pub struct Section1 {
+///     #[debug_info(name="節の長さ", fmt="0x{:04X}")]
+///     section_bytes: usize,
+///     #[debug_info(name="作成中枢の識別")]
+///     center: u16,
+/// }
+///
+/// #[derive(SectionDebugInfo)]
+/// #[section(number=3, name="格子系定義節")]
+/// pub struct Section3<T> {
+///     #[debug_info(name="節の長さ", fmt="0x{:04X}")]
+///     section_bytes: usize,
+///     #[debug_info(name="格子系定義の出典")]
+///     source_of_grid_definition: u8,
+///     #[debug_template]
+///     template3: T,
+/// }
+/// ```
+///
+/// 上記から次を導出する。
+///
+/// ```
+/// impl Section0 {
+///     pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
+///     where
+///         W: std::io::Write,
+/// {
+///     writeln!(writer, "第1節:識別節")?;
+///     writeln!(writer, "    節の長さ: 0x{04X}", self.section_bytes)?;
+///     writeln!(writer, "    作成中枢の識別: {}", self.center)?;
+///
+///     Ok(())
+/// }
+///
+/// impl<T> Section3<T> {
+///     pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
+///     where
+///         T: DebugTemplate<W>,
+///         W: std::io::Write,
+/// {
+///     writeln!(writer, "第3節:格子系定義節")?;
+///     writeln!(writer, "    節の長さ: {}", self.section_bytes)?;
+///     writeln!(writer, "    格子系定義の出典: {}", self.source_of_grid_definition())?;
+///     self.template3.debug_info(writer)?;
+///
+///    Ok(())
+/// }
+/// ```
+#[proc_macro_derive(SectionDebugInfo, attributes(section, debug_info, debug_template))]
+pub fn derive_section_debug_info(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+
+    match derive_section_debug_info_impl(input) {
         Ok(token_stream) => TokenStream::from(token_stream),
         Err(err) => TokenStream::from(err.into_compile_error()),
     }
