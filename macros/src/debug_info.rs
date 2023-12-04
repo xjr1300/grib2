@@ -5,8 +5,8 @@ use syn::{
 };
 
 use crate::utils::{
-    expr_to_string, expr_to_u8, is_unit_struct, retrieve_attr_value, retrieve_fields_by_names,
-    retrieve_struct_fields, CommaPunctuatedNameValues,
+    expr_to_string, expr_to_u8, is_unit_struct, retrieve_fields_by_names, retrieve_struct_fields,
+    retrieve_value_by_path_and_key, CommaPunctuatedNameValues,
 };
 
 pub(crate) fn derive_section_debug_info_impl(input: DeriveInput) -> syn::Result<TokenStream2> {
@@ -130,32 +130,19 @@ fn derive_debug_statement(field: &Field) -> syn::Result<TokenStream2> {
         .any(|attr| attr.path().is_ident("debug_info"));
 
     let token_stream = if is_debug_info {
-        let name = retrieve_attr_value(&field.attrs, "name").map_err(|err| {
-            syn::Error::new_spanned(
-                field,
-                format!("failed to parse name attribute in debug_info: {}", err),
-            )
-        })?;
-        if name.is_none() {
-            return Err(syn::Error::new_spanned(
-                field,
-                "name attribute not found in debug_info attribute",
-            ));
-        }
-        let fmt = retrieve_attr_value(&field.attrs, "fmt").map_err(|err| {
-            syn::Error::new_spanned(
-                field,
-                format!("failed to parse fmt attribute in debug_info: {}", err),
-            )
-        })?;
-        if fmt.is_none() {
-            quote! {
-                writeln!(writer, "    {}: {}", #name, self.#field_ident)?;
+        let name = retrieve_value_by_path_and_key(&field.attrs, "debug_info", "name").ok_or_else(
+            || syn::Error::new_spanned(field, "name attribute not found in debug_info attribute"),
+        )?;
+        match retrieve_value_by_path_and_key(&field.attrs, "debug_info", "fmt") {
+            Some(fmt) => {
+                quote! {
+                    writeln!(writer, "    {}: {}", #name, format!(#fmt, self.#field_ident))?;
+                }
             }
-        } else {
-            let fmt = fmt.unwrap();
-            quote! {
-                writeln!(writer, "    {}: {}", #name, format!(#fmt, self.#field_ident))?;
+            None => {
+                quote! {
+                    writeln!(writer, "    {}: {}", #name, self.#field_ident)?;
+                }
             }
         }
     } else {

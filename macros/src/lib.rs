@@ -146,7 +146,6 @@ pub fn derive_template_getter(input: TokenStream) -> TokenStream {
 ///    Ok(())
 /// }
 /// ```
-/// FIXME: 構造体のフィールドにコメントを追加するとコンパイルエラーになるため対応すること。
 #[proc_macro_derive(SectionDebugInfo, attributes(section, debug_info, debug_template))]
 pub fn derive_section_debug_info(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
