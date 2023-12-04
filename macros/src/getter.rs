@@ -5,8 +5,8 @@ use quote::quote;
 use syn::{punctuated::Punctuated, Attribute, DeriveInput, Expr, Visibility};
 
 use crate::utils::{
-    expr_to_string, retrieve_attr_fields, retrieve_struct_fields, CommaPunctuatedNameValues,
-    FieldAttrPair,
+    expr_to_string, retrieve_field_attrs_by_names, retrieve_struct_fields,
+    CommaPunctuatedNameValues, FieldAttrPair,
 };
 
 pub(crate) fn derive_getter_impl(input: DeriveInput) -> syn::Result<TokenStream2> {
@@ -32,7 +32,7 @@ fn derive_getter_methods(input: &DeriveInput) -> syn::Result<TokenStream2> {
     // 構造体のフィールドを取得
     let fields = retrieve_struct_fields(input)?;
     // getter属性が付与されたフィールドとgetter属性を取得
-    let field_attrs = retrieve_attr_fields(&fields, "getter");
+    let field_attrs = retrieve_field_attrs_by_names(&fields, &["getter"]);
     // 構造体のフィールドのゲッターメソッドの構文木を生成
     let mut getter_methods: Vec<TokenStream2> = vec![];
     for field_attr in field_attrs.iter() {
@@ -82,16 +82,10 @@ pub(crate) fn derive_template_getter_impl(input: DeriveInput) -> syn::Result<Tok
     let template_getter = input
         .attrs
         .iter()
-        .find(|attr| attr.meta.path().is_ident("template_getter"));
-    if template_getter.is_none() {
-        return Err(syn::Error::new_spanned(
-            input,
-            "expected `#[template_getter(...)]`",
-        ));
-    }
-    let attr = template_getter.unwrap();
+        .find(|attr| attr.meta.path().is_ident("template_getter"))
+        .ok_or_else(|| syn::Error::new_spanned(&input, "template_getter attribute not found"))?;
 
-    let attr = retrieve_template_getter_values(attr)?;
+    let attr = retrieve_template_getter_values(template_getter)?;
     let section = TokenStream2::from_str(&attr.section)?;
     let member = TokenStream2::from_str(&attr.member)?;
 
@@ -103,7 +97,7 @@ pub(crate) fn derive_template_getter_impl(input: DeriveInput) -> syn::Result<Tok
     // 構造体のフィールドを取得
     let fields = retrieve_struct_fields(&input)?;
     // getter属性が付与されたフィールドとgetter属性を取得
-    let field_attrs = retrieve_attr_fields(&fields, "getter");
+    let field_attrs = retrieve_field_attrs_by_names(&fields, &["getter"]);
     // 構造体のフィールドのゲッターメソッドの構文木を生成
     let mut getter_methods: Vec<TokenStream2> = vec![];
     for field_attr in field_attrs.iter() {
@@ -161,8 +155,8 @@ struct TemplateGetterAttrValues {
     member: String,
 }
 
-/// #[template_getter(section = "Section2", member = "template2")]
-///                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ <- この部分を取得
+/// #[template_getter(section="Section2", member="template2")]
+///                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ <- この部分を取得
 fn retrieve_template_getter_values(attr: &Attribute) -> syn::Result<TemplateGetterAttrValues> {
     let name_values: CommaPunctuatedNameValues = attr
         .parse_args_with(Punctuated::parse_terminated)
