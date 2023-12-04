@@ -10,8 +10,6 @@ use crate::utils::{
 };
 
 pub(crate) fn derive_section_debug_info_impl(input: DeriveInput) -> syn::Result<TokenStream2> {
-    // ユニット構造体確認
-
     // 構造体のジェネリックスを取得
     let (impl_generics, ty_generics, _) = input.generics.split_for_impl();
     // 構造体に付与されたsection属性を取得
@@ -132,14 +130,24 @@ fn derive_debug_statement(field: &Field) -> syn::Result<TokenStream2> {
         .any(|attr| attr.path().is_ident("debug_info"));
 
     let token_stream = if is_debug_info {
-        let name = retrieve_attr_value(&field.attrs, "name");
+        let name = retrieve_attr_value(&field.attrs, "name").map_err(|err| {
+            syn::Error::new_spanned(
+                field,
+                format!("failed to parse name attribute in debug_info: {}", err),
+            )
+        })?;
         if name.is_none() {
             return Err(syn::Error::new_spanned(
                 field,
                 "name attribute not found in debug_info attribute",
             ));
         }
-        let fmt = retrieve_attr_value(&field.attrs, "fmt");
+        let fmt = retrieve_attr_value(&field.attrs, "fmt").map_err(|err| {
+            syn::Error::new_spanned(
+                field,
+                format!("failed to parse fmt attribute in debug_info: {}", err),
+            )
+        })?;
         if fmt.is_none() {
             quote! {
                 writeln!(writer, "    {}: {}", #name, self.#field_ident)?;

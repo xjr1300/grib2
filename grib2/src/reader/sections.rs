@@ -3,7 +3,7 @@ use std::io::{Read, Seek};
 use time::{Date, Month, PrimitiveDateTime, Time};
 
 use super::{FileReader, ReaderError, ReaderResult};
-use macros::{Getter, TemplateGetter};
+use macros::{Getter, SectionDebugInfo, TemplateGetter};
 
 /// 第0節:GRIB版番号
 const EDITION_NUMBER: u8 = 2;
@@ -26,79 +26,80 @@ const SECTION6_BYTES: u32 = 6;
 /// 第8節:終端のマーカー
 const SECTION8_END_MARKER: &str = "7777";
 
-/// 第0節:指示節
-#[derive(Debug, Clone, Copy, Getter)]
+#[derive(Debug, Clone, Copy, Getter, SectionDebugInfo)]
+#[section(number = 0, name = "指示節")]
 pub struct Section0 {
-    /// 資料分野
     #[getter(ret = "val")]
+    #[debug_info(name = "資料分野")]
     discipline: u8,
-    /// GRIB版番号
     #[getter(ret = "val")]
+    #[debug_info(name = "GRIB版番号")]
     edition_number: u8,
-    /// GRIB報全体のバイト数
     #[getter(ret = "val")]
+    #[debug_info(name = "GRIB報全体のバイト数", fmt = "0x{:08X}")]
     total_length: usize,
 }
 
-/// 第1節:識別節
-#[derive(Debug, Clone, Copy, Getter)]
+#[derive(Debug, Clone, Copy, Getter, SectionDebugInfo)]
+#[section(number = 1, name = "識別節")]
 pub struct Section1 {
-    /// 節の長さ
     #[getter(ret = "val")]
+    #[debug_info(name = "節の長さ", fmt = "0x{:04X}")]
     section_bytes: usize,
-    /// 作成中枢の識別
     #[getter(ret = "val")]
+    #[debug_info(name = "作成中枢の識別")]
     center: u16,
-    /// 作成副中枢
     #[getter(ret = "val")]
+    #[debug_info(name = "作成副中枢")]
     sub_center: u16,
-    /// GRIBマスター表バージョン番号
     #[getter(ret = "val")]
+    #[debug_info(name = "GRIBマスター表バージョン番号")]
     table_version: u8,
-    /// GRIB地域表バージョン番号
     #[getter(ret = "val")]
+    #[debug_info(name = "GRIB地域表バージョン番号")]
     local_table_version: u8,
-    /// 参照時刻の意味
     #[getter(ret = "val")]
+    #[debug_info(name = "参照時刻の意味")]
     significance_of_reference_time: u8,
-    /// 資料の参照時刻
     #[getter(ret = "val")]
+    #[debug_info(name = "資料の参照時刻")]
     referenced_at: PrimitiveDateTime,
-    /// 作成ステータス
     #[getter(ret = "val")]
+    #[debug_info(name = "作成ステータス")]
     production_status_of_processed_data: u8,
-    /// 資料の種類
     #[getter(ret = "val")]
+    #[debug_info(name = "資料の種類")]
     type_of_processed_data: u8,
 }
 
-/// 第2節:地域使用節
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, SectionDebugInfo)]
+#[section(number = 2, name = "地域使用節")]
 pub struct Section2;
 
-/// 第3節:格子系定義節
-#[derive(Debug, Clone, Copy, Getter)]
-pub struct Section3<T3> {
-    /// 節の長さ
+#[derive(Debug, Clone, Copy, Getter, SectionDebugInfo)]
+#[section(number = 3, name = "格子系定義節")]
+pub struct Section3<T> {
     #[getter(ret = "val")]
+    #[debug_info(name = "節の長さ", fmt = "0x{:04X}")]
     section_bytes: usize,
-    /// 格子系定義の出典
     #[getter(ret = "val")]
+    #[debug_info(name = "格子系定義の出典")]
     source_of_grid_definition: u8,
-    /// 第3節に記録されている資料点数
     #[getter(ret = "val")]
+    #[debug_info(name = "資料点数")]
     number_of_data_points: u32,
-    /// 格子点数を定義するリストのオクテット数
     #[getter(ret = "val")]
+    #[debug_info(name = "格子点数を定義するリストのオクテット数")]
     number_of_octets_for_number_of_points: u8,
-    /// 格子点数を定義するリストの説明
     #[getter(ret = "val")]
+    #[debug_info(name = "格子点数を定義するリストの説明")]
     interpretation_of_number_of_points: u8,
-    /// 格子系定義テンプレート番号
     #[getter(ret = "val")]
+    #[debug_info(name = "格子系定義テンプレート番号")]
     grid_definition_template_number: u16,
     /// テンプレート3
-    template3: T3,
+    #[debug_template]
+    template3: T,
 }
 
 /// テンプレート3.0
@@ -155,23 +156,24 @@ pub struct Template3_0 {
     scanning_mode: u8,
 }
 
-/// 第4節:プロダクト定義節
-#[derive(Debug, Clone, Copy, Getter)]
-pub struct Section4<T4> {
-    /// 節の長さ
+#[derive(Debug, Clone, Copy, Getter, SectionDebugInfo)]
+#[section(number = 4, name = "プロダクト定義節")]
+pub struct Section4<T> {
     #[getter(ret = "val")]
+    #[debug_info(name = "節の長さ")]
     section_bytes: usize,
-    /// テンプレート直後の座標値の数
     #[getter(ret = "val")]
+    #[debug_info(name = "テンプレート直後の座標値の数")]
     number_of_after_template_points: u16,
-    /// プロダクト定義テンプレート番号
     #[getter(ret = "val")]
+    #[debug_info(name = "プロダクト定義テンプレート番号")]
     product_definition_template_number: u16,
-    /// パラメータカテゴリー
     #[getter(ret = "val")]
+    #[debug_info(name = "パラメータカテゴリー")]
     parameter_category: u8,
     /// テンプレート4
-    template4: T4,
+    #[debug_template]
+    template4: T,
 }
 
 /// テンプレート4.50008
@@ -240,23 +242,24 @@ pub struct Template4_50008 {
     rain_gauge_info: u64,
 }
 
-/// 第5節:資料表現節
-#[derive(Debug, Clone, Copy, Getter)]
-pub struct Section5<T5> {
-    /// 節の長さ
+#[derive(Debug, Clone, Copy, Getter, SectionDebugInfo)]
+#[section(number = 5, name = "資料表現節")]
+pub struct Section5<T> {
     #[getter(ret = "val")]
+    #[debug_info(name = "節の長さ", fmt = "0x{:04X}")]
     section_bytes: usize,
-    /// 全資料点の数
     #[getter(ret = "val")]
+    #[debug_info(name = "全資料点の数")]
     number_of_values: u32,
-    /// 資料表現テンプレート番号
     #[getter(ret = "val")]
+    #[debug_info(name = "資料表現テンプレート番号")]
     data_representation_template_number: u16,
-    /// 1データのビット数
     #[getter(ret = "val")]
+    #[debug_info(name = "1データのビット数")]
     bits_per_value: u8,
     /// テンプレート5
-    template5: T5,
+    #[debug_template]
+    template5: T,
 }
 
 /// テンプレート5.200
@@ -278,25 +281,25 @@ pub struct Template5_200 {
     level_values: Vec<u16>,
 }
 
-/// 第6節:ビットマップ節
-#[derive(Debug, Clone, Copy, Getter)]
+#[derive(Debug, Clone, Copy, Getter, SectionDebugInfo)]
+#[section(number = 6, name = "ビットマップ節")]
 pub struct Section6 {
-    /// 節の長さ
     #[getter(ret = "val")]
+    #[debug_info(name = "節の長さ", fmt = "0x{:04X}")]
     section_bytes: usize,
-    /// ビットマップ指示符
     #[getter(ret = "val")]
+    #[debug_info(name = "ビットマップ指示符")]
     bitmap_indicator: u8,
 }
 
-/// 第７節:資料節
-#[derive(Debug, Clone, Copy, Getter)]
-pub struct Section7<T7> {
-    /// 節の長さ
+#[derive(Debug, Clone, Copy, Getter, SectionDebugInfo)]
+#[section(number = 7, name = "資料節")]
+pub struct Section7<T> {
+    #[debug_info(name = "節の長さ", fmt = "0x{:04X}")]
     #[getter(ret = "val")]
     section_bytes: usize,
-    /// テンプレート7
-    template7: T7,
+    #[debug_template]
+    template7: T,
 }
 
 /// テンプレート7.200
@@ -359,22 +362,6 @@ impl FromReader for Section0 {
     }
 }
 
-impl Section0 {
-    /// 第0節:指示節を出力する。
-    #[rustfmt::skip]
-    pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
-    where
-        W: std::io::Write,
-    {
-        writeln!(writer, "第0節:指示節")?;
-        writeln!(writer, "    資料分野: {}", self.discipline)?;
-        writeln!(writer, "    GRIB版番号: {}", self.edition_number)?;
-        writeln!(writer, "    GRIB報全体の長さ: 0x{:08X}", self.total_length)?;
-
-        Ok(())
-    }
-}
-
 impl FromReader for Section1 {
     /// GRIB2ファイルから第1節:識別節を読み込む。
     ///
@@ -421,28 +408,6 @@ impl FromReader for Section1 {
     }
 }
 
-impl Section1 {
-    /// 第1節:識別節を出力する。
-    #[rustfmt::skip]
-    pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
-    where
-        W: std::io::Write,
-    {
-        writeln!(writer, "第1節:識別節")?;
-        writeln!(writer, "    節の長さ: {}", self.section_bytes)?;
-        writeln!(writer, "    作成中枢の識別: {}", self.center)?;
-        writeln!(writer, "    作成副中枢: {}", self.sub_center)?;
-        writeln!(writer, "    GRIBマスター表バージョン番号: {}", self.table_version)?;
-        writeln!(writer, "    GRIB地域表バージョン番号: {}", self.local_table_version)?;
-        writeln!(writer, "    参照時刻の意味: {}", self.significance_of_reference_time)?;
-        writeln!(writer, "    資料の参照時刻: {}", self.referenced_at)?;
-        writeln!(writer, "    作成ステータス: {}", self.production_status_of_processed_data)?;
-        writeln!(writer, "    資料の種類: {}", self.type_of_processed_data)?;
-
-        Ok(())
-    }
-}
-
 impl Section2 {
     /// GRIB2ファイルから第2節:地域使用節を読み込む。
     ///
@@ -456,22 +421,11 @@ impl Section2 {
     pub(crate) fn from_reader(_reader: &mut FileReader) -> ReaderResult<Self> {
         Ok(Self)
     }
-
-    /// 第2節:地域使用節を出力する。
-        #[rustfmt::skip]
-    pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
-        where
-            W: std::io::Write,
-        {
-            writeln!(writer, "第2節:地域使用節")?;
-
-            Ok(())
-        }
 }
 
-impl<T3> FromReader for Section3<T3>
+impl<T> FromReader for Section3<T>
 where
-    T3: TemplateFromReader<u16>,
+    T: TemplateFromReader<u16>,
 {
     /// GRIB2ファイルから第3節:格子系定義節を読み込む。
     ///
@@ -500,7 +454,7 @@ where
         // 格子系定義テンプレート番号: 2バイト
         let grid_definition_template_number = read_u16(reader, "第3節:格子系定義テンプレート番号")?;
         // テンプレート3
-        let template = T3::from_reader(reader, grid_definition_template_number)?;
+        let template = T::from_reader(reader, grid_definition_template_number)?;
 
         Ok(Self {
             section_bytes,
@@ -511,26 +465,6 @@ where
             grid_definition_template_number,
             template3: template,
         })
-    }
-}
-
-impl<T3> Section3<T3> {
-    #[rustfmt::skip]
-    pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
-    where
-    T3: DebugTemplate<W>,
-        W: std::io::Write,
-    {
-        writeln!(writer, "第3節:格子系定義節")?;
-        writeln!(writer, "    節の長さ: {}", self.section_bytes)?;
-        writeln!(writer, "    格子系定義の出典: {}", self.source_of_grid_definition())?;
-        writeln!(writer, "    資料点数: {}", self.number_of_data_points)?;
-        writeln!(writer, "    格子点数を定義するリストのオクテット数: {}", self.number_of_octets_for_number_of_points)?;
-        writeln!(writer, "    格子点数を定義するリストの説明: {}", self.interpretation_of_number_of_points)?;
-        writeln!(writer, "    格子系定義テンプレート番号: {}", self.grid_definition_template_number)?;
-        self.template3.debug_info(writer)?;
-
-        Ok(())
     }
 }
 
@@ -633,9 +567,9 @@ impl<W> DebugTemplate<W> for Template3_0 {
     }
 }
 
-impl<T4> FromReader for Section4<T4>
+impl<T> FromReader for Section4<T>
 where
-    T4: TemplateFromReader<u16>,
+    T: TemplateFromReader<u16>,
 {
     fn from_reader(reader: &mut FileReader) -> ReaderResult<Self> {
         // 節の長さ: 4バイト
@@ -651,7 +585,7 @@ where
         // パラメータカテゴリー: 1バイト
         let parameter_category = read_u8(reader, "第4節:パラメータカテゴリー")?;
         // テンプレート4
-        let template4 = T4::from_reader(reader, product_definition_template_number)?;
+        let template4 = T::from_reader(reader, product_definition_template_number)?;
 
         Ok(Self {
             section_bytes,
@@ -660,25 +594,6 @@ where
             parameter_category,
             template4,
         })
-    }
-}
-
-impl<T4> Section4<T4> {
-    /// 第4節:プロダクト定義節を出力する。
-    #[rustfmt::skip]
-    pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
-    where
-        W: std::io::Write,
-        T4: DebugTemplate<W>,
-    {
-        writeln!(writer, "第4節:プロダクト定義節")?;
-        writeln!(writer, "    節の長さ: {}", self.section_bytes)?;
-        writeln!(writer, "    テンプレート直後の座標値の数: {}", self.number_of_after_template_points)?;
-        writeln!(writer, "    プロダクト定義テンプレート番号: {}", self.product_definition_template_number)?;
-        writeln!(writer, "    パラメータカテゴリー: {}", self.parameter_category)?;
-        self.template4.debug_info(writer)?;
-
-        Ok(())
     }
 }
 
@@ -807,9 +722,9 @@ impl<W> DebugTemplate<W> for Template4_50008 {
     }
 }
 
-impl<T5> FromReader for Section5<T5>
+impl<T> FromReader for Section5<T>
 where
-    T5: TemplateFromReaderWithSize<u16>,
+    T: TemplateFromReaderWithSize<u16>,
 {
     fn from_reader(reader: &mut FileReader) -> ReaderResult<Self> {
         // 節の長さ: 4バイト
@@ -826,7 +741,7 @@ where
         // テンプレート5
         let template_bytes = section_bytes - (4 + 1 + 4 + 2 + 1);
         let template5 =
-            T5::from_reader(reader, data_representation_template_number, template_bytes)?;
+            T::from_reader(reader, data_representation_template_number, template_bytes)?;
 
         Ok(Self {
             section_bytes,
@@ -835,25 +750,6 @@ where
             bits_per_value,
             template5,
         })
-    }
-}
-
-impl<T5> Section5<T5> {
-    /// 第5節:資料表現節を出力する。
-    #[rustfmt::skip]
-    pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
-    where
-        W: std::io::Write,
-        T5: DebugTemplate<W>,
-    {
-        writeln!(writer, "第5節:資料表現節")?;
-        writeln!(writer, "    節の長さ: {}", self.section_bytes())?;
-        writeln!(writer, "    全資料点の数: {}", self.number_of_values())?;
-        writeln!(writer, "    資料表現テンプレート番号: {}", self.data_representation_template_number())?;
-        writeln!(writer, "    1データのビット数: {}", self.bits_per_value())?;
-        self.template5.debug_info(writer)?;
-
-        Ok(())
     }
 }
 
@@ -924,24 +820,9 @@ impl FromReader for Section6 {
     }
 }
 
-impl Section6 {
-    /// 第6節:ビットマップ節を出力する。
-    #[rustfmt::skip]
-    pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
-    where
-        W: std::io::Write,
-    {
-        writeln!(writer, "第6節:ビットマップ節")?;
-        writeln!(writer, "    節の長さ: {}", self.section_bytes())?;
-        writeln!(writer, "    ビットマップ指示符数: {}", self.bitmap_indicator())?;
-
-        Ok(())
-    }
-}
-
-impl<T7> FromReader for Section7<T7>
+impl<T> FromReader for Section7<T>
 where
-    T7: TemplateFromReaderWithSize<u16>,
+    T: TemplateFromReaderWithSize<u16>,
 {
     fn from_reader(reader: &mut FileReader) -> ReaderResult<Self> {
         // 節の長さ: 4バイト
@@ -950,7 +831,7 @@ where
         validate_u8(reader, 7, "第7節:節番号")?;
         // テンプレート7
         let template_bytes = section_bytes - (4 + 1);
-        let template7 = T7::from_reader(
+        let template7 = T::from_reader(
             reader,
             RUN_LENGTH_DATA_REPRESENTATION_TEMPLATE_NUMBER,
             template_bytes,
@@ -960,22 +841,6 @@ where
             section_bytes,
             template7,
         })
-    }
-}
-
-impl<T7> Section7<T7> {
-    /// 第7節:資料節を出力する。
-    #[rustfmt::skip]
-    pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
-    where
-        W: std::io::Write,
-        T7: DebugTemplate<W>
-    {
-        writeln!(writer, "第7節:資料節")?;
-        writeln!(writer, "    節の長さ: {}", self.section_bytes())?;
-        self.template7.debug_info(writer)?;
-
-        Ok(())
     }
 }
 

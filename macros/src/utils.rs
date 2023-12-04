@@ -107,19 +107,20 @@ pub(crate) fn expr_to_u8(expr: Expr) -> Result<u8, ()> {
 
 /// #[debug_info(name="debug_name", fmt="0x{:04X}")]
 ///                   ^^^^^^^^^^^^ <- この部分を取得
-pub(crate) fn retrieve_attr_value(attrs: &[Attribute], name: &str) -> Option<Expr> {
+pub(crate) fn retrieve_attr_value(attrs: &[Attribute], name: &str) -> syn::Result<Option<Expr>> {
     for attr in attrs {
-        let name_values: CommaPunctuatedNameValues =
-            attr.parse_args_with(Punctuated::parse_terminated).unwrap();
+        let name_values: CommaPunctuatedNameValues = attr
+            .parse_args_with(Punctuated::parse_terminated)
+            .map_err(|e| e)?;
         for nv in name_values {
             let att_ident = nv.path.get_ident().unwrap();
             if *att_ident == name {
-                return Some(nv.value);
+                return Ok(Some(nv.value));
             }
         }
     }
 
-    None
+    Ok(None)
 }
 
 pub(crate) fn is_unit_struct(data: &syn::Data) -> bool {
