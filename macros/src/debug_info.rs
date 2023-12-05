@@ -24,8 +24,8 @@ pub(crate) fn derive_section_debug_info_impl(input: DeriveInput) -> syn::Result<
     let section_name = Literal::string(&section_attr_values.name);
 
     let token_stream = match is_unit_struct(&input.data) {
-        true => derive_unit_struct_impl(input.ident, section_number, section_name),
-        false => derive_struct_impl(
+        true => derive_section_unit_struct_impl(input.ident, section_number, section_name),
+        false => derive_section_struct_impl(
             &input,
             impl_generics,
             ty_generics,
@@ -37,7 +37,7 @@ pub(crate) fn derive_section_debug_info_impl(input: DeriveInput) -> syn::Result<
     Ok(token_stream)
 }
 
-fn derive_unit_struct_impl(
+fn derive_section_unit_struct_impl(
     ident: Ident,
     section_number: Literal,
     section_name: Literal,
@@ -56,7 +56,7 @@ fn derive_unit_struct_impl(
     }
 }
 
-fn derive_struct_impl(
+fn derive_section_struct_impl(
     input: &DeriveInput,
     impl_generics: ImplGenerics<'_>,
     ty_generics: TypeGenerics<'_>,
@@ -66,7 +66,7 @@ fn derive_struct_impl(
     // フィールドの識別子を取得
     let ident = &input.ident;
     // 構造体のフィールドを取得
-    let fields = retrieve_struct_fields(&input)?;
+    let fields = retrieve_struct_fields(input)?;
     // debug_infoまたはdebug_template属性が付与されたフィールドを取得
     let fields = retrieve_fields_by_names(&fields, &["debug_info", "debug_template"]);
     // debug_template属性が付与されたフィールドが存在するか確認
@@ -79,7 +79,7 @@ fn derive_struct_impl(
     // フィールドごとにデバッグ情報を取得する構文木を生成
     let mut debug_infos = vec![];
     for field in fields.iter() {
-        debug_infos.push(derive_debug_statement(field)?);
+        debug_infos.push(derive_debug_statement_impl(field)?);
     }
 
     let token_stream = if exists_debug_template {
@@ -120,7 +120,7 @@ fn derive_struct_impl(
     Ok(token_stream)
 }
 
-fn derive_debug_statement(field: &Field) -> syn::Result<TokenStream2> {
+fn derive_debug_statement_impl(field: &Field) -> syn::Result<TokenStream2> {
     // フィールドの識別子を取得
     let field_ident = field.ident.as_ref().unwrap();
     // フィールドがdebug_info属性を持つか確認
@@ -153,13 +153,14 @@ fn derive_debug_statement(field: &Field) -> syn::Result<TokenStream2> {
 
     Ok(token_stream)
 }
+
 struct SectionAttrValues {
     number: u8,
     name: String,
 }
 
 /// #[section(number=1, name="section_name")]
-///           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ <- この部分を取得
+///           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ <- この部分を取得
 fn retrieve_section_attr_values(attrs: &Attribute) -> syn::Result<SectionAttrValues> {
     let name_values: CommaPunctuatedNameValues = attrs
         .parse_args_with(Punctuated::parse_terminated)
@@ -194,4 +195,33 @@ fn retrieve_section_attr_values(attrs: &Attribute) -> syn::Result<SectionAttrVal
     let name = expr_to_string(name).unwrap();
 
     Ok(SectionAttrValues { number, name })
+}
+
+pub(crate) fn derive_template_debug_info_impl(input: DeriveInput) -> syn::Result<TokenStream2> {
+    // 構造体の識別子を取得
+    let ident = &input.ident;
+    // 構造体のフィールドを取得
+    let fields = retrieve_struct_fields(&input)?;
+    // debug_info属性が付与されたフィールドを取得
+    let fields = retrieve_fields_by_names(&fields, &["debug_info"]);
+    // フィールドごとにデバッグ情報を取得する文を生成
+    let mut debug_infos = vec![];
+    for field in fields.iter() {
+        debug_infos.push(derive_debug_statement_impl(field)?);
+    }
+
+    Ok(quote! {
+        impl<W> DebugTemplate<W> for #ident {
+            fn debug_info(&self, writer: &mut W) -> std::io::Result<()>
+            where
+                W: std::io::Write,
+            {
+                #(
+                    #debug_infos
+                )*
+
+                Ok(())
+            }
+        }
+    })
 }

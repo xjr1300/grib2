@@ -133,10 +133,7 @@ pub(crate) fn retrieve_value_by_path_and_key(
 
 pub(crate) fn is_unit_struct(data: &syn::Data) -> bool {
     match data {
-        syn::Data::Struct(s) => match s.fields {
-            syn::Fields::Unit => true,
-            _ => false,
-        },
+        syn::Data::Struct(s) => matches!(s.fields, syn::Fields::Unit),
         _ => false,
     }
 }
