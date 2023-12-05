@@ -44,6 +44,7 @@ fn actual_swi_value_from_reader(reader: &mut FileReader) -> ReaderResult<ActualS
 }
 
 #[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 enum Tank {
     Swi = 0,
     First = 1,
@@ -160,30 +161,30 @@ where
     }
 
     fn tank_values(&mut self, tank: Tank) -> ReaderResult<Grib2ValueIter<'_>> {
+        let value_sections = &self.tanks[tank as usize];
         let file = File::open(self.path.as_ref())
             .map_err(|e| ReaderError::NotFount(e.to_string().into()))?;
         let mut reader = FileReader::new(file);
         reader
             .seek(SeekFrom::Start(
-                self.tanks[0].section7.run_length_position() as u64,
+                value_sections.section7.run_length_position() as u64,
             ))
             .map_err(|_| {
                 ReaderError::ReadError("ランレングス圧縮符号列のシークに失敗しました。".into())
             })?;
-        let tank = &self.tanks[tank as usize];
 
         Ok(Grib2ValueIter::new(
             reader,
-            tank.section7.run_length_bytes(),
+            value_sections.section7.run_length_bytes(),
             self.section3.number_of_data_points(),
             self.section3.lat_of_first_grid_point(),
             self.section3.lon_of_first_grid_point(),
             self.section3.lon_of_last_grid_point(),
             self.section3.j_direction_increment(),
             self.section3.i_direction_increment(),
-            tank.section5.bits_per_value() as u16,
-            tank.section5.max_level_value(),
-            tank.section5.level_values(),
+            value_sections.section5.bits_per_value() as u16,
+            value_sections.section5.max_level_value(),
+            value_sections.section5.level_values(),
         ))
     }
 
@@ -237,6 +238,7 @@ where
         self.second_tank().debug_info(writer)?;
         writeln!(writer)?;
         self.section8.debug_info(writer)?;
+        writeln!(writer)?;
 
         Ok(())
     }
@@ -298,7 +300,6 @@ impl ActualSwiValue {
         self.section6.debug_info(writer)?;
         writeln!(writer)?;
         self.section7.debug_info(writer)?;
-        writeln!(writer)?;
 
         Ok(())
     }
