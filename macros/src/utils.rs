@@ -49,7 +49,7 @@ pub(crate) fn retrieve_field_attrs_by_names<'a>(
 
 /// 指定された属性が付与されたフィールドを取得する。
 ///
-/// ```
+/// ```text
 /// struct Foo {
 ///     #[getter(ret="val")]
 ///     a: i32,
@@ -60,7 +60,7 @@ pub(crate) fn retrieve_field_attrs_by_names<'a>(
 ///
 /// 上記のような構造体から、`getter`または`setter`属性が付与されたフィールドを取得する。
 ///
-/// ```
+/// ```text
 /// let fields = retrieve_fields_by_names(&fields, &["getter", "setter"]);
 /// ```
 pub(crate) fn retrieve_fields_by_names<'a>(
