@@ -2,11 +2,13 @@ use std::borrow::Cow;
 use std::fs::File;
 use std::io::BufReader;
 
+mod actual_swi_reader;
 mod analysis_rainfall_reader;
 mod sections;
 mod value;
 mod value_iter;
 
+pub use actual_swi_reader::ActualSwiReader;
 pub use analysis_rainfall_reader::AnalysisRainfallReader;
 pub use value::Grib2Value;
 pub use value_iter::Grib2ValueIter;

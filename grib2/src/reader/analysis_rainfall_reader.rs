@@ -16,7 +16,7 @@ pub type Section4_50008 = Section4<Template4_50008>;
 pub type Section5_200 = Section5<Template5_200>;
 pub type Section7_200 = Section7<Template7_200>;
 
-/// 1kmメッシュ解析雨量リーダー
+/// 解析雨量リーダー
 pub struct AnalysisRainfallReader<P>
 where
     P: AsRef<Path>,
@@ -47,7 +47,7 @@ impl<P> AnalysisRainfallReader<P>
 where
     P: AsRef<Path>,
 {
-    /// ファイルパスを受け取り`Grib2Reader`を構築する。
+    /// ファイルパスを受け取り、解析雨量リーダーを構築する。
     ///
     /// # 引数
     ///
@@ -55,7 +55,7 @@ where
     ///
     /// # 戻り値
     ///
-    /// `Grib2Reader`
+    /// 解析雨量リーダー
     pub fn new(path: P) -> ReaderResult<Self> {
         let file =
             File::open(path.as_ref()).map_err(|e| ReaderError::NotFount(e.to_string().into()))?;
@@ -110,6 +110,15 @@ where
     /// 第1節:識別節
     pub fn section1(&self) -> &Section1 {
         &self.section1
+    }
+
+    /// 第2節:地域使用節を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 第2節:地域使用節
+    pub fn section2(&self) -> &Section2 {
+        &self.section2
     }
 
     /// 第3節:格子系定義節を返す。
@@ -216,6 +225,8 @@ where
         self.section6.debug_info(writer)?;
         writeln!(writer)?;
         self.section7.debug_info(writer)?;
+        writeln!(writer)?;
+        self.section8.debug_info(writer)?;
         writeln!(writer)?;
 
         Ok(())
