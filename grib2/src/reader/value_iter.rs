@@ -107,7 +107,7 @@ impl<'a> Grib2ValueIter<'a> {
         if self.last_run_length.is_some() {
             run_length.push(self.last_run_length.unwrap());
         }
-        loop {
+        while self.read_bytes < self.total_bytes {
             let value = self.read_u8()? as u16;
             if value <= self.maxv && !run_length.is_empty() {
                 self.last_run_length = Some(value);
