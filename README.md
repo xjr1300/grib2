@@ -12,3 +12,13 @@
 ```sh
 cargo expand --package macros --test test_macros
 ```
+
+## テスト
+
+```toml
+
+```
+
+```sh
+cargo test --test analysis_rainfall -- --ignored --nocapture
+```

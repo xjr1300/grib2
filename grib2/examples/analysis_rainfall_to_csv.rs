@@ -6,9 +6,9 @@ use gsjp::{Coordinate, Mesh, Mesh3};
 use grib2::reader::AnalysisRainfallReader;
 
 fn main() {
-    let input = "resources/sample.bin";
+    let input = "resources/analysis_rainfall.bin";
     let mut reader = AnalysisRainfallReader::new(input).unwrap();
-    let output = "resources/sample_with_mesh3.csv";
+    let output = "resources/analysis_rainfall_with_mesh3.csv";
     let file = OpenOptions::new()
         .write(true)
         .create(true)

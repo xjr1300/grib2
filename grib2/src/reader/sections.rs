@@ -15,6 +15,7 @@ const SECTION1_BYTES: u32 = 21;
 const LAT_LON_GRID_DEFINITION_TEMPLATE_NUMBER: u16 = 0; // 緯度・経度格子
 
 /// 第４節:プロダクト定義テンプレート番号
+const DEFAULT_PRODUCT_DEFINITION_TEMPLATE_NUMBER: u16 = 0; // デフォルト
 const RADAR_PRODUCT_DEFINITION_TEMPLATE_NUMBER: u16 = 50008; // レーダーなどに基づく解析プロダクト
 
 /// 第5節:資料表現テンプレート番号
@@ -26,12 +27,18 @@ const SECTION6_BYTES: u32 = 6;
 /// 第8節:終端のマーカー
 const SECTION8_END_MARKER: &str = "7777";
 
-#[derive(Debug, Clone, Copy, Getter, SectionDebugInfo)]
+#[derive(Debug, Clone, Getter, SectionDebugInfo)]
 #[section(number = 0, name = "指示節")]
 pub struct Section0 {
+    #[getter(ret = "ref", rty = "&str")]
+    #[debug_info(name = "GRIB")]
+    grib: String,
     #[getter(ret = "val")]
     #[debug_info(name = "資料分野")]
     discipline: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "保留")]
+    reserved: u16,
     #[getter(ret = "val")]
     #[debug_info(name = "GRIB版番号")]
     edition_number: u8,
@@ -110,6 +117,12 @@ pub struct Template3_0 {
     #[debug_info(name = "地球の形状")]
     shape_of_earth: u8,
     #[getter(ret = "val")]
+    #[debug_info(name = "地球球体の半径の尺度因子")]
+    scale_factor_of_radius_of_spherical_earth: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "地球球体の尺度付き半径")]
+    scaled_value_of_radius_of_spherical_earth: u32,
+    #[getter(ret = "val")]
     #[debug_info(name = "地球回転楕円体の長軸の尺度因子")]
     scale_factor_of_earth_major_axis: u8,
     #[getter(ret = "val")]
@@ -130,6 +143,9 @@ pub struct Template3_0 {
     #[getter(ret = "val")]
     #[debug_info(name = "原作成領域の基本角")]
     basic_angle_of_initial_product_domain: u32,
+    #[getter(ret = "val")]
+    #[debug_info(name = "端点の経度及び緯度並びに方向増分の定義に使われる基本角の細分")]
+    subdivisions_of_basic_angle: u32,
     #[getter(ret = "val")]
     #[debug_info(name = "最初の格子点の緯度（10e-6度単位）")]
     lat_of_first_grid_point: u32,
@@ -168,18 +184,18 @@ pub struct Section4<T> {
     #[getter(ret = "val")]
     #[debug_info(name = "プロダクト定義テンプレート番号")]
     product_definition_template_number: u16,
-    #[getter(ret = "val")]
-    #[debug_info(name = "パラメータカテゴリー")]
-    parameter_category: u8,
     /// テンプレート4
     #[debug_template]
     template4: T,
 }
 
-/// テンプレート4.50008
+/// テンプレート4.0
 #[derive(Debug, Clone, Copy, TemplateGetter, TemplateDebugInfo)]
 #[template_getter(section = "Section4", member = "template4")]
-pub struct Template4_50008 {
+pub struct Template4_0 {
+    #[getter(ret = "val")]
+    #[debug_info(name = "パラメータカテゴリー")]
+    parameter_category: u8,
     #[getter(ret = "val")]
     #[debug_info(name = "パラメータ番号")]
     parameter_number: u8,
@@ -189,6 +205,9 @@ pub struct Template4_50008 {
     #[getter(ret = "val")]
     #[debug_info(name = "背景作成処理識別符")]
     background_process: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "予報の作成処理識別符")]
+    generating_process_identifier: u8,
     #[getter(ret = "val")]
     #[debug_info(name = "観測資料の参照時刻からの締切時間（時）")]
     hours_after_data_cutoff: u16,
@@ -204,6 +223,72 @@ pub struct Template4_50008 {
     #[getter(ret = "val")]
     #[debug_info(name = "第一固定面の種類")]
     type_of_first_fixed_surface: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "第一固定面の尺度因子")]
+    scale_factor_of_first_fixed_surface: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "第一固定面の尺度付きの値")]
+    scaled_value_of_first_fixed_surface: u32,
+    #[getter(ret = "val")]
+    #[debug_info(name = "第二固定面の種類")]
+    type_of_second_fixed_surface: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "第二固定面の尺度因子")]
+    scale_factor_of_second_fixed_surface: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "第二固定面の尺度付きの値")]
+    scaled_value_of_second_fixed_surface: u32,
+}
+
+/// テンプレート4.50008
+#[derive(Debug, Clone, Copy, TemplateGetter, TemplateDebugInfo)]
+#[template_getter(section = "Section4", member = "template4")]
+pub struct Template4_50008 {
+    #[getter(ret = "val")]
+    #[debug_info(name = "パラメータカテゴリー")]
+    parameter_category: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "パラメータ番号")]
+    parameter_number: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "作成処理の種類")]
+    type_of_generating_process: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "背景作成処理識別符")]
+    background_process: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "予報の作成処理識別符")]
+    generating_process_identifier: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "観測資料の参照時刻からの締切時間（時）")]
+    hours_after_data_cutoff: u16,
+    #[getter(ret = "val")]
+    #[debug_info(name = "観測資料の参照時刻からの締切時間（分）")]
+    minutes_after_data_cutoff: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "期間の単位の指示符")]
+    indicator_of_unit_of_time_range: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "予報時間")]
+    forecast_time: i32,
+    #[getter(ret = "val")]
+    #[debug_info(name = "第一固定面の種類")]
+    type_of_first_fixed_surface: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "第一固定面の尺度因子")]
+    scale_factor_of_first_fixed_surface: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "第一固定面の尺度付きの値")]
+    scaled_value_of_first_fixed_surface: u32,
+    #[getter(ret = "val")]
+    #[debug_info(name = "第二固定面の種類")]
+    type_of_second_fixed_surface: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "第二固定面の尺度因子")]
+    scale_factor_of_second_fixed_surface: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "第二固定面の尺度付きの値")]
+    scaled_value_of_second_fixed_surface: u32,
     #[getter(ret = "val")]
     #[debug_info(name = "全時間間隔の終了時(UTC)")]
     end_of_all_time_intervals: OffsetDateTime,
@@ -321,7 +406,14 @@ pub struct Template7_200 {
 }
 
 /// 第８節:終端節
-pub struct Section8;
+#[derive(Debug, Clone, Getter, SectionDebugInfo)]
+#[section(number = 8, name = "終端節")]
+pub struct Section8 {
+    /// 終端のマーカー
+    #[getter(ret = "ref", rty = "&str")]
+    #[debug_info(name = "終了マーカー")]
+    end_marker: String,
+}
 
 /// テンプレート番号を検証する文を展開するマクロ
 macro_rules! validate_template_number {
@@ -350,9 +442,9 @@ impl FromReader for Section0 {
     /// 第0節: 指示節
     fn from_reader(reader: &mut FileReader) -> ReaderResult<Self> {
         // GRIB: 4バイト
-        validate_str(reader, "第0節:GRIB", 4, "GRIB")?;
+        let grib = validate_str(reader, "第0節:GRIB", 4, "GRIB")?;
         // 保留: 2バイト
-        seek_relative(reader, "第0節:保留", 2)?;
+        let reserved = read_u16(reader, "第0節:保留")?;
         // 資料分野: 1バイト
         let discipline = read_u8(reader, "第0節:資料分野")?;
         // GRIB版番号: 1バイト
@@ -361,7 +453,9 @@ impl FromReader for Section0 {
         let total_length = read_u64(reader, "第0節:GRIB報全体の長さ")? as usize;
 
         Ok(Self {
+            grib,
             discipline,
+            reserved,
             edition_number,
             total_length,
         })
@@ -485,9 +579,11 @@ impl TemplateFromReader<u16> for Template3_0 {
         // 地球の形状: 1バイト
         let shape_of_earth = read_u8(reader, "第3節:地球の形状")?;
         // 地球球体の半径の尺度因子: 1バイト
-        seek_relative(reader, "第3節:地球球体の半径の尺度因子", 1)?;
+        let scale_factor_of_radius_of_spherical_earth =
+            read_u8(reader, "第3節:地球球体の半径の尺度因子")?;
         // 地球球体の尺度付き半径: 4バイト
-        seek_relative(reader, "第3節:地球球体の尺度付き半径", 4)?;
+        let scaled_value_of_radius_of_spherical_earth =
+            read_u32(reader, "第3節:地球球体の尺度付き半径")?;
         // 地球回転楕円体の長軸の尺度因子: 1バイト
         let scale_factor_of_earth_major_axis =
             read_u8(reader, "第3節:地球回転楕円体の長軸の尺度因子")?;
@@ -507,7 +603,8 @@ impl TemplateFromReader<u16> for Template3_0 {
         // 原作成領域の基本角: 4バイト
         let basic_angle_of_initial_product_domain = read_u32(reader, "第3節:原作成領域の基本角")?;
         // 端点の経度及び緯度並びに方向増分の定義に使われる基本角の細分: 4バイト
-        seek_relative(reader, "第3節:端点の経度及び緯度並びに方向増分の定義", 4)?;
+        let subdivisions_of_basic_angle =
+            read_u32(reader, "第3節:端点の経度及び緯度並びに方向増分の定義")?;
         // 最初の格子点の緯度（10e-6度単位）: 4バイト
         let lat_of_first_grid_point = read_u32(reader, "第3節:最初の格子点の緯度")?;
         // 最初の格子点の経度（10e-6度単位）: 4バイト
@@ -527,6 +624,8 @@ impl TemplateFromReader<u16> for Template3_0 {
 
         Ok(Self {
             shape_of_earth,
+            scale_factor_of_radius_of_spherical_earth,
+            scaled_value_of_radius_of_spherical_earth,
             scale_factor_of_earth_major_axis,
             scaled_value_of_earth_major_axis,
             scale_factor_of_earth_minor_axis,
@@ -534,6 +633,7 @@ impl TemplateFromReader<u16> for Template3_0 {
             number_of_along_lat_points,
             number_of_along_lon_points,
             basic_angle_of_initial_product_domain,
+            subdivisions_of_basic_angle,
             lat_of_first_grid_point,
             lon_of_first_grid_point,
             resolution_and_component_flags,
@@ -561,8 +661,6 @@ where
         // プロダクト定義テンプレート番号: 2バイト
         let product_definition_template_number =
             read_u16(reader, "第4節:プロダクト定義テンプレート番号")?;
-        // パラメータカテゴリー: 1バイト
-        let parameter_category = read_u8(reader, "第4節:パラメータカテゴリー")?;
         // テンプレート4
         let template4 = T::from_reader(reader, product_definition_template_number)?;
 
@@ -570,20 +668,21 @@ where
             section_bytes,
             number_of_after_template_points,
             product_definition_template_number,
-            parameter_category,
             template4,
         })
     }
 }
 
-impl TemplateFromReader<u16> for Template4_50008 {
+impl TemplateFromReader<u16> for Template4_0 {
     fn from_reader(reader: &mut FileReader, template_number: u16) -> ReaderResult<Self> {
         // プロダクト定義テンプレート番号を確認
         validate_template_number!(
             "第4節:プロダクト定義テンプレート番号",
             template_number,
-            RADAR_PRODUCT_DEFINITION_TEMPLATE_NUMBER
+            DEFAULT_PRODUCT_DEFINITION_TEMPLATE_NUMBER
         );
+        // パラメータカテゴリー: 1バイト
+        let parameter_category = read_u8(reader, "第4節:パラメータカテゴリー")?;
         // パラメータ番号: 1バイト
         let parameter_number = read_u8(reader, "第4節:パラメータ番号")?;
         // 作成処理の種類: 1バイト
@@ -591,7 +690,7 @@ impl TemplateFromReader<u16> for Template4_50008 {
         // 背景作成処理識別符: 1バイト
         let background_process = read_u8(reader, "第4節:背景作成処理識別符")?;
         // 予報の作成処理識別符: 1バイト
-        seek_relative(reader, "第4節:予報の作成処理識別符", 1)?;
+        let generating_process_identifier = read_u8(reader, "第4節:予報の作成処理識別符")?;
         // 観測資料の参照時刻からの締切時間（時）: 2バイト
         let hours_after_data_cutoff =
             read_u16(reader, "第4節:観測資料の参照時刻からの締切時間（時）")?;
@@ -605,15 +704,80 @@ impl TemplateFromReader<u16> for Template4_50008 {
         // 第一固定面の種類: 1バイト
         let type_of_first_fixed_surface = read_u8(reader, "第4節:第一固定面の種類")?;
         // 第一固定面の尺度因子: 1バイト
-        seek_relative(reader, "第4節:第一固定面の尺度因子", 1)?;
+        let scale_factor_of_first_fixed_surface = read_u8(reader, "第4節:第一固定面の尺度因子")?;
         // 第一固定面の尺度付きの値: 4バイト
-        seek_relative(reader, "第4節:第一固定面の尺度付きの値", 4)?;
+        let scaled_value_of_first_fixed_surface =
+            read_u32(reader, "第4節:第一固定面の尺度付きの値")?;
         // 第二固定面の種類: 1バイト
-        seek_relative(reader, "第4節:第二固定面の種類", 1)?;
+        let type_of_second_fixed_surface = read_u8(reader, "第4節:第二固定面の種類")?;
         // 第二固定面の尺度因子: 1バイト
-        seek_relative(reader, "第4節:第二固定面の尺度因子", 1)?;
+        let scale_factor_of_second_fixed_surface = read_u8(reader, "第4節:第二固定面の尺度因子")?;
         // 第二固定面の尺度付きの値: 4バイト
-        seek_relative(reader, "第4節:第二固定面の尺度付きの値", 4)?;
+        let scaled_value_of_second_fixed_surface =
+            read_u32(reader, "第4節:第二固定面の尺度付きの値")?;
+
+        Ok(Self {
+            parameter_category,
+            parameter_number,
+            type_of_generating_process,
+            background_process,
+            generating_process_identifier,
+            hours_after_data_cutoff,
+            minutes_after_data_cutoff,
+            indicator_of_unit_of_time_range,
+            forecast_time,
+            type_of_first_fixed_surface,
+            scale_factor_of_first_fixed_surface,
+            scaled_value_of_first_fixed_surface,
+            type_of_second_fixed_surface,
+            scale_factor_of_second_fixed_surface,
+            scaled_value_of_second_fixed_surface,
+        })
+    }
+}
+
+impl TemplateFromReader<u16> for Template4_50008 {
+    fn from_reader(reader: &mut FileReader, template_number: u16) -> ReaderResult<Self> {
+        // プロダクト定義テンプレート番号を確認
+        validate_template_number!(
+            "第4節:プロダクト定義テンプレート番号",
+            template_number,
+            RADAR_PRODUCT_DEFINITION_TEMPLATE_NUMBER
+        );
+        // パラメータカテゴリー: 1バイト
+        let parameter_category = read_u8(reader, "第4節:パラメータカテゴリー")?;
+        // パラメータ番号: 1バイト
+        let parameter_number = read_u8(reader, "第4節:パラメータ番号")?;
+        // 作成処理の種類: 1バイト
+        let type_of_generating_process = read_u8(reader, "第4節:作成処理の種類")?;
+        // 背景作成処理識別符: 1バイト
+        let background_process = read_u8(reader, "第4節:背景作成処理識別符")?;
+        // 予報の作成処理識別符: 1バイト
+        let generating_process_identifier = read_u8(reader, "第4節:予報の作成処理識別符")?;
+        // 観測資料の参照時刻からの締切時間（時）: 2バイト
+        let hours_after_data_cutoff =
+            read_u16(reader, "第4節:観測資料の参照時刻からの締切時間（時）")?;
+        // 観測資料の参照時刻からの締切時間（分）: 1バイト
+        let minutes_after_data_cutoff =
+            read_u8(reader, "第4節:観測資料の参照時刻からの締切時間（分）")?;
+        // 期間の単位の指示符: 1バイト
+        let indicator_of_unit_of_time_range = read_u8(reader, "第4節:期間の単位の指示符")?;
+        // 予報時間: 4バイト
+        let forecast_time = read_i32(reader, "第4節:予報時間")?;
+        // 第一固定面の種類: 1バイト
+        let type_of_first_fixed_surface = read_u8(reader, "第4節:第一固定面の種類")?;
+        // 第一固定面の尺度因子: 1バイト
+        let scale_factor_of_first_fixed_surface = read_u8(reader, "第4節:第一固定面の尺度因子")?;
+        // 第一固定面の尺度付きの値: 4バイト
+        let scaled_value_of_first_fixed_surface =
+            read_u32(reader, "第4節:第一固定面の尺度付きの値")?;
+        // 第二固定面の種類: 1バイト
+        let type_of_second_fixed_surface = read_u8(reader, "第4節:第二固定面の種類")?;
+        // 第二固定面の尺度因子: 1バイト
+        let scale_factor_of_second_fixed_surface = read_u8(reader, "第4節:第二固定面の尺度因子")?;
+        // 第二固定面の尺度付きの値: 4バイト
+        let scaled_value_of_second_fixed_surface =
+            read_u32(reader, "第4節:第二固定面の尺度付きの値")?;
         // 全時間間隔の終了時: 7バイト
         let end_of_all_time_intervals = read_datetime(reader, "第4節:全時間間隔の終了時")?;
         // 統計を算出するために使用した時間間隔を記述する期間の仕様の数: 1バイト
@@ -646,14 +810,21 @@ impl TemplateFromReader<u16> for Template4_50008 {
         let rain_gauge_info = read_u64(reader, "第4節:雨量計運用情報の読み込みに失敗しました。")?;
 
         Ok(Self {
+            parameter_category,
             parameter_number,
             type_of_generating_process,
             background_process,
+            generating_process_identifier,
             hours_after_data_cutoff,
             minutes_after_data_cutoff,
             indicator_of_unit_of_time_range,
             forecast_time,
             type_of_first_fixed_surface,
+            scale_factor_of_first_fixed_surface,
+            scaled_value_of_first_fixed_surface,
+            type_of_second_fixed_surface,
+            scale_factor_of_second_fixed_surface,
+            scaled_value_of_second_fixed_surface,
             end_of_all_time_intervals,
             number_of_time_range_specs,
             number_of_missing_values,
@@ -811,16 +982,16 @@ impl TemplateFromReaderWithSize<u16> for Template7_200 {
 impl FromReader for Section8 {
     fn from_reader(reader: &mut FileReader) -> ReaderResult<Self> {
         // 第8節:終端マーカー
-        let value = read_str(reader, 4);
-        match value {
-            Ok(value) => {
-                if value == SECTION8_END_MARKER {
-                    Ok(Self {})
+        let end_marker = read_str(reader, 4);
+        match end_marker {
+            Ok(end_marker) => {
+                if end_marker == SECTION8_END_MARKER {
+                    Ok(Self { end_marker })
                 } else {
                     Err(ReaderError::Unexpected(
                         format!(
                             "第8節の終了が不正です。ファイルを正確に読み込めなかった可能性があります。expected: {}, actual: {}",
-                            SECTION8_END_MARKER, value
+                            SECTION8_END_MARKER, end_marker
                         )
                         .into(),
                     ))
@@ -831,12 +1002,6 @@ impl FromReader for Section8 {
             )),
         }
     }
-}
-
-fn seek_relative(reader: &mut FileReader, name: &str, offset: i64) -> ReaderResult<()> {
-    reader
-        .seek_relative(offset)
-        .map_err(|_| ReaderError::ReadError(format!("{}を読み飛ばせませんでした。", name).into()))
 }
 
 fn validate_str(

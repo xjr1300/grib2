@@ -5,9 +5,9 @@ use grib2::reader::AnalysisRainfallReader;
 
 #[test]
 #[ignore]
-fn convert_to_csv() {
+fn analysis_rainfall() {
     // GRIB2ファイルを読み込みCSVファイルに座標を出力
-    let input = "../resources/sample.bin";
+    let input = "../resources/analysis_rainfall.bin";
     let mut reader = AnalysisRainfallReader::new(input).unwrap();
     {
         let handle = stdout().lock();
@@ -15,7 +15,7 @@ fn convert_to_csv() {
         reader.debug_info(&mut writer).unwrap();
     }
 
-    let output = "../resources/sample.csv";
+    let output = "../resources/analysis_rainfall.csv";
     let file = OpenOptions::new()
         .write(true)
         .create(true)
@@ -43,7 +43,7 @@ fn convert_to_csv() {
     println!("number of reading points: {}", number_of_points);
 
     // 検証
-    let expected = "../resources/sample.org.csv";
+    let expected = "../resources/analysis_rainfall.org.csv";
     let mut o_reader = BufReader::new(File::open(output).unwrap());
     let e_reader = BufReader::new(File::open(expected).unwrap());
     for e_line in e_reader.lines() {
