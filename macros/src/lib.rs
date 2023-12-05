@@ -5,7 +5,7 @@ mod debug_info;
 mod getter;
 mod utils;
 
-use debug_info::derive_section_debug_info_impl;
+use debug_info::{derive_section_debug_info_impl, derive_template_debug_info_impl};
 use getter::{derive_getter_impl, derive_template_getter_impl};
 
 /// ゲッター導出マクロ
@@ -146,12 +146,46 @@ pub fn derive_template_getter(input: TokenStream) -> TokenStream {
 ///    Ok(())
 /// }
 /// ```
-/// FIXME: 構造体のフィールドにコメントを追加するとコンパイルエラーになるため対応すること。
 #[proc_macro_derive(SectionDebugInfo, attributes(section, debug_info, debug_template))]
 pub fn derive_section_debug_info(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
     match derive_section_debug_info_impl(input) {
+        Ok(token_stream) => TokenStream::from(token_stream),
+        Err(err) => TokenStream::from(err.into_compile_error()),
+    }
+}
+
+/// 節デバッグ情報出力導出マクロ
+///
+/// ```
+/// #[derive(TemplateDebugInfo)]
+/// pub struct Template3_0 {
+///     #[debug_info(name="地球の形状", fmt="{}")]
+///     shape_of_earth: u8,
+///     /// 地球回転楕円体の長軸の尺度因子
+///     #[debug_info(name="地球回転楕円体の長軸の尺度因子")]
+///     scale_factor_of_earth_major_axis: u8,
+/// }
+/// ```
+///
+/// 上記構造体から次を導出する。
+///
+/// ```
+/// impl<W> DebugTemplate<W> for Template3_0 {
+///     fn debug_info(&self, writer: &mut W) -> std::io::Result<()> {
+///         write!(writer, "    地球の形状: {}", self.shape_of_earth)?;
+///         write!(writer, "    地球回転楕円体の長軸の尺度因子: {}", self.scale_factor_of_earth_major_axis)?;
+///
+///         Ok(())
+///     }
+/// }
+/// ```
+#[proc_macro_derive(TemplateDebugInfo, attributes(debug_info))]
+pub fn derive_template_debug_info(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+
+    match derive_template_debug_info_impl(input) {
         Ok(token_stream) => TokenStream::from(token_stream),
         Err(err) => TokenStream::from(err.into_compile_error()),
     }

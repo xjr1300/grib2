@@ -3,7 +3,7 @@ use std::io::{Read, Seek};
 use time::{Date, Month, PrimitiveDateTime, Time};
 
 use super::{FileReader, ReaderError, ReaderResult};
-use macros::{Getter, SectionDebugInfo, TemplateGetter};
+use macros::{Getter, SectionDebugInfo, TemplateDebugInfo, TemplateGetter};
 
 /// 第0節:GRIB版番号
 const EDITION_NUMBER: u8 = 2;
@@ -103,56 +103,56 @@ pub struct Section3<T> {
 }
 
 /// テンプレート3.0
-#[derive(Debug, Clone, Copy, TemplateGetter)]
+#[derive(Debug, Clone, Copy, TemplateGetter, TemplateDebugInfo)]
 #[template_getter(section = "Section3", member = "template3")]
 pub struct Template3_0 {
-    /// 地球の形状
     #[getter(ret = "val")]
+    #[debug_info(name = "地球の形状")]
     shape_of_earth: u8,
-    /// 地球回転楕円体の長軸の尺度因子
     #[getter(ret = "val")]
+    #[debug_info(name = "地球回転楕円体の長軸の尺度因子")]
     scale_factor_of_earth_major_axis: u8,
-    /// 地球回転楕円体の長軸の尺度付きの長さ
     #[getter(ret = "val")]
+    #[debug_info(name = "地球回転楕円体の長軸の尺度付きの長さ")]
     scaled_value_of_earth_major_axis: u32,
-    /// 地球回転楕円体の短軸の尺度因子
     #[getter(ret = "val")]
+    #[debug_info(name = "地球回転楕円体の短軸の尺度因子")]
     scale_factor_of_earth_minor_axis: u8,
-    /// 地球回転楕円体の短軸の尺度付きの長さ
     #[getter(ret = "val")]
+    #[debug_info(name = "地球回転楕円体の短軸の尺度付きの長さ")]
     scaled_value_of_earth_minor_axis: u32,
-    /// 緯線に沿った格子点数
     #[getter(ret = "val")]
+    #[debug_info(name = "緯線に沿った格子点数")]
     number_of_along_lat_points: u32,
-    /// 経線に沿った格子点数
     #[getter(ret = "val")]
+    #[debug_info(name = "経線に沿った格子点数")]
     number_of_along_lon_points: u32,
-    /// 原作成領域の基本角
     #[getter(ret = "val")]
+    #[debug_info(name = "原作成領域の基本角")]
     basic_angle_of_initial_product_domain: u32,
-    /// 最初の格子点の緯度（10e-6度単位）
     #[getter(ret = "val")]
+    #[debug_info(name = "最初の格子点の緯度（10e-6度単位）")]
     lat_of_first_grid_point: u32,
-    /// 最初の格子点の経度（10e-6度単位）
+    #[debug_info(name = "最初の格子点の経度（10e-6度単位）")]
     #[getter(ret = "val")]
     lon_of_first_grid_point: u32,
-    /// 分解能及び成分フラグ
     #[getter(ret = "val")]
+    #[debug_info(name = "分解能及び成分フラグ")]
     resolution_and_component_flags: u8,
-    /// 最後の格子点の緯度（10e-6度単位）
     #[getter(ret = "val")]
+    #[debug_info(name = "最後の格子点の緯度（10e-6度単位）")]
     lat_of_last_grid_point: u32,
-    /// 最後の格子点の経度（10e-6度単位）
     #[getter(ret = "val")]
+    #[debug_info(name = "最後の格子点の経度（10e-6度単位）")]
     lon_of_last_grid_point: u32,
-    /// i方向（経度方向）の増分（10e-6度単位）
     #[getter(ret = "val")]
+    #[debug_info(name = "i方向（経度方向）の増分（10e-6度単位）")]
     i_direction_increment: u32,
-    /// j方向（緯度方向）の増分（10e-6度単位）
     #[getter(ret = "val")]
+    #[debug_info(name = "j方向（緯度方向）の増分（10e-6度単位）")]
     j_direction_increment: u32,
-    /// 走査モード
     #[getter(ret = "val")]
+    #[debug_info(name = "走査モード")]
     scanning_mode: u8,
 }
 
@@ -177,68 +177,68 @@ pub struct Section4<T> {
 }
 
 /// テンプレート4.50008
-#[derive(Debug, Clone, Copy, TemplateGetter)]
+#[derive(Debug, Clone, Copy, TemplateGetter, TemplateDebugInfo)]
 #[template_getter(section = "Section4", member = "template4")]
 pub struct Template4_50008 {
-    /// パラメータ番号
     #[getter(ret = "val")]
+    #[debug_info(name = "パラメータ番号")]
     parameter_number: u8,
-    /// 作成処理の種類
     #[getter(ret = "val")]
+    #[debug_info(name = "作成処理の種類")]
     type_of_generating_process: u8,
-    /// 背景作成処理識別符
     #[getter(ret = "val")]
+    #[debug_info(name = "背景作成処理識別符")]
     background_process: u8,
-    /// 観測資料の参照時刻からの締切時間（時）
     #[getter(ret = "val")]
+    #[debug_info(name = "観測資料の参照時刻からの締切時間（時）")]
     hours_after_data_cutoff: u16,
-    /// 観測資料の参照時刻からの締切時間（分）
     #[getter(ret = "val")]
+    #[debug_info(name = "観測資料の参照時刻からの締切時間（分）")]
     minutes_after_data_cutoff: u8,
-    /// 期間の単位の指示符
     #[getter(ret = "val")]
+    #[debug_info(name = "期間の単位の指示符")]
     indicator_of_unit_of_time_range: u8,
-    /// 予報時間
     #[getter(ret = "val")]
+    #[debug_info(name = "予報時間")]
     forecast_time: i32,
-    /// 第一固定面の種類
     #[getter(ret = "val")]
+    #[debug_info(name = "第一固定面の種類")]
     type_of_first_fixed_surface: u8,
-    /// 全時間間隔の終了時
     #[getter(ret = "val")]
+    #[debug_info(name = "全時間間隔の終了時")]
     end_of_all_time_intervals: PrimitiveDateTime,
-    /// 統計を算出するために使用した時間間隔を記述する期間の仕様の数
     #[getter(ret = "val")]
+    #[debug_info(name = "統計を算出するために使用した時間間隔を記述する期間の仕様の数")]
     number_of_time_range_specs: u8,
-    /// 統計処理における欠測資料の総数
     #[getter(ret = "val")]
+    #[debug_info(name = "統計処理における欠測資料の総数")]
     number_of_missing_values: u32,
-    /// 統計処理の種類
     #[getter(ret = "val")]
+    #[debug_info(name = "統計処理の種類")]
     type_of_stat_proc: u8,
-    /// 統計処理の時間増分の種類
     #[getter(ret = "val")]
+    #[debug_info(name = "統計処理の時間増分の種類")]
     type_of_stat_proc_time_increment: u8,
-    /// 統計処理の時間の単位の指示符
     #[getter(ret = "val")]
+    #[debug_info(name = "統計処理の時間の単位の指示符")]
     stat_proc_time_unit: u8,
-    /// 統計処理した時間の長さ
     #[getter(ret = "val")]
+    #[debug_info(name = "統計処理した時間の長さ")]
     stat_proc_time_length: u32,
-    /// 連続的な資料場間の増分に関する時間の単位の指示符
     #[getter(ret = "val")]
+    #[debug_info(name = "連続的な資料場間の増分に関する時間の単位の指示符")]
     successive_time_unit: u8,
-    /// 連続的な資料場間の時間の増分
     #[getter(ret = "val")]
+    #[debug_info(name = "連続的な資料場間の時間の増分")]
     successive_time_increment: u32,
-    /// レーダー等運用情報その1
     #[getter(ret = "val")]
+    #[debug_info(name = "レーダー等運用情報その1", fmt = "0x{:08X}")]
     radar_info1: u64,
-    /// レーダー等運用情報その2
     #[getter(ret = "val")]
+    #[debug_info(name = "レーダー等運用情報その2", fmt = "0x{:08X}")]
     radar_info2: u64,
-    /// 雨量計運用情報
     #[getter(ret = "val")]
+    #[debug_info(name = "雨量計運用情報", fmt = "0x{:08X}")]
     rain_gauge_info: u64,
 }
 
@@ -263,21 +263,27 @@ pub struct Section5<T> {
 }
 
 /// テンプレート5.200
-#[derive(Debug, Clone, TemplateGetter)]
+#[derive(Debug, Clone, TemplateGetter, TemplateDebugInfo)]
 #[template_getter(section = "Section5", member = "template5")]
 pub struct Template5_200 {
-    /// 今回の圧縮に用いたレベルの最大値
     #[getter(ret = "val")]
+    #[debug_info(name = "今回の圧縮に用いたレベルの最大値")]
     max_level_value: u16,
-    /// データの取り得るレベルの最大値
     #[getter(ret = "val")]
+    #[debug_info(name = "データの取り得るレベルの最大値")]
     number_of_level_values: u16,
-    /// データ代表値の尺度因子
     #[getter(ret = "val")]
+    #[debug_info(name = "データ代表値の尺度因子")]
     decimal_scale_factor: u8,
-    /// レベルmに対応するデータ代表値
     /// レベル値と物理値(mm/h)の対応を格納するコレクション
     #[getter(ret = "ref", rty = "&[u16]")]
+    #[debug_info(
+        name = "レベルmに対応するデータ代表値",
+        data_type = "serial",
+        header = "レベル{}",
+        start = 1,
+        fmt = "{}"
+    )]
     level_values: Vec<u16>,
 }
 
@@ -295,22 +301,22 @@ pub struct Section6 {
 #[derive(Debug, Clone, Copy, Getter, SectionDebugInfo)]
 #[section(number = 7, name = "資料節")]
 pub struct Section7<T> {
-    #[debug_info(name = "節の長さ", fmt = "0x{:04X}")]
     #[getter(ret = "val")]
+    #[debug_info(name = "節の長さ", fmt = "0x{:04X}")]
     section_bytes: usize,
     #[debug_template]
     template7: T,
 }
 
 /// テンプレート7.200
-#[derive(Debug, Clone, Copy, TemplateGetter)]
+#[derive(Debug, Clone, Copy, TemplateGetter, TemplateDebugInfo)]
 #[template_getter(section = "Section7", member = "template7")]
 pub struct Template7_200 {
-    /// ランレングス圧縮符号列の開始位置
     #[getter(ret = "val")]
+    #[debug_info(name = "ランレングス圧縮符号列の開始位置", fmt = "0x{:08X}")]
     run_length_position: usize,
-    /// ランレングス圧縮符号列のバイト数
     #[getter(ret = "val")]
+    #[debug_info(name = "ランレングス圧縮符号のバイト数", fmt = "0x{:08X}")]
     run_length_bytes: usize,
 }
 
@@ -540,33 +546,6 @@ impl TemplateFromReader<u16> for Template3_0 {
     }
 }
 
-impl<W> DebugTemplate<W> for Template3_0 {
-    #[rustfmt::skip]
-    fn debug_info(&self, writer: &mut W) -> std::io::Result<()>
-    where
-        W: std::io::Write,
-    {
-        writeln!(writer, "    地球の形状: {}", self.shape_of_earth)?;
-        writeln!(writer, "    地球回転楕円体の長軸の尺度因子: {}", self.scale_factor_of_earth_major_axis)?;
-        writeln!(writer, "    地球回転楕円体の長軸の尺度付きの長さ: {}", self.scaled_value_of_earth_major_axis)?;
-        writeln!(writer, "    地球回転楕円体の短軸の尺度因子: {}", self.scale_factor_of_earth_minor_axis)?;
-        writeln!(writer, "    地球回転楕円体の短軸の尺度付きの長さ: {}", self.scaled_value_of_earth_minor_axis)?;
-        writeln!(writer, "    緯線に沿った格子点数: {}", self.number_of_along_lat_points)?;
-        writeln!(writer, "    経線に沿った格子点数: {}", self.number_of_along_lon_points)?;
-        writeln!(writer, "    原作成領域の基本角: {}", self.basic_angle_of_initial_product_domain)?;
-        writeln!(writer, "    最初の格子点の緯度: {}", self.lat_of_first_grid_point)?;
-        writeln!(writer, "    最初の格子点の経度: {}", self.lon_of_first_grid_point)?;
-        writeln!(writer, "    分解能及び成分フラグ: 0x{:02X}", self.resolution_and_component_flags)?;
-        writeln!(writer, "    最後の格子点の緯度: {}", self.lat_of_last_grid_point)?;
-        writeln!(writer, "    最後の格子点の経度: {}", self.lon_of_last_grid_point)?;
-        writeln!(writer, "    i方向の増分: {}", self.j_direction_increment)?;
-        writeln!(writer, "    j方向の増分: {}", self.i_direction_increment)?;
-        writeln!(writer, "    走査モード: 0x{:02X}", self.scanning_mode)?;
-
-        Ok(())
-    }
-}
-
 impl<T> FromReader for Section4<T>
 where
     T: TemplateFromReader<u16>,
@@ -691,37 +670,6 @@ impl TemplateFromReader<u16> for Template4_50008 {
     }
 }
 
-impl<W> DebugTemplate<W> for Template4_50008 {
-    #[rustfmt::skip]
-    fn debug_info(&self, writer: &mut W) -> std::io::Result<()>
-    where
-        W: std::io::Write,
-    {
-        writeln!(writer, "    パラメータ番号: {}", self.parameter_number)?;
-        writeln!(writer, "    作成処理の種類: {}", self.type_of_generating_process)?;
-        writeln!(writer, "    背景作成処理識別符: {}", self.background_process)?;
-        writeln!(writer, "    観測資料の参照時刻からの締切時間(時): {}", self.hours_after_data_cutoff)?;
-        writeln!(writer, "    観測資料の参照時刻からの締切時間(分): {}", self.minutes_after_data_cutoff)?;
-        writeln!(writer, "    期間の単位の指示符: {}", self.indicator_of_unit_of_time_range)?;
-        writeln!(writer, "    予報時間（分）: {}", self.forecast_time)?;
-        writeln!(writer, "    第一固定面の種類: {}", self.type_of_first_fixed_surface)?;
-        writeln!(writer, "    全時間間隔の終了時: {}", self.end_of_all_time_intervals)?;
-        writeln!(writer, "    統計を算出するために使用した時間間隔を記述する期間の仕様の数: {}", self.number_of_time_range_specs)?;
-        writeln!(writer, "    統計処理における欠測資料の総数: {}", self.number_of_missing_values)?;
-        writeln!(writer, "    統計処理の種類: {}", self.type_of_stat_proc)?;
-        writeln!(writer, "    統計処理の時間増分の種類: {}", self.type_of_stat_proc_time_increment)?;
-        writeln!(writer, "    統計処理の時間の単位の指示符: {}", self.stat_proc_time_unit)?;
-        writeln!(writer, "    統計処理した期間の長さ: {}", self.stat_proc_time_length)?;
-        writeln!(writer, "    連続的な資料場間の増分に関する時間の単位の指示符: {}", self.successive_time_unit)?;
-        writeln!(writer, "    続的な資料場間の時間の増分: {}", self.successive_time_increment)?;
-        writeln!(writer, "    レーダー等運用情報その1: 0x{:02X}", self.radar_info1)?;
-        writeln!(writer, "    レーダー等運用情報その2: 0x{:02X}", self.radar_info2)?;
-        writeln!(writer, "    雨量計運用情報: 0x{:02X}", self.rain_gauge_info)?;
-
-        Ok(())
-    }
-}
-
 impl<T> FromReader for Section5<T>
 where
     T: TemplateFromReaderWithSize<u16>,
@@ -787,23 +735,6 @@ impl TemplateFromReaderWithSize<u16> for Template5_200 {
     }
 }
 
-impl<W> DebugTemplate<W> for Template5_200 {
-    #[rustfmt::skip]
-    fn debug_info(&self, writer: &mut W) -> std::io::Result<()>
-    where
-        W: std::io::Write,
-    {
-        writeln!(writer, "    今回の圧縮に用いたレベルの最大値: {}", self.max_level_value)?;
-        writeln!(writer, "    データの取り得るレベルの最大値: {}", self.number_of_level_values)?;
-        writeln!(writer, "    データ代表値の尺度因子: {}", self.decimal_scale_factor)?;
-        writeln!(writer, "    レベルmに対応するデータ代表値:")?;
-        for (i, level_value) in self.level_values.iter().enumerate() {
-            writeln!(writer, "        レベル{}: {}", i + 1, level_value)?;
-        }
-
-        Ok(())
-    }
-}
 impl FromReader for Section6 {
     fn from_reader(reader: &mut FileReader) -> ReaderResult<Self> {
         // 節の長さ: 4バイト
@@ -874,19 +805,6 @@ impl TemplateFromReaderWithSize<u16> for Template7_200 {
             run_length_position,
             run_length_bytes: template_bytes,
         })
-    }
-}
-
-impl<W> DebugTemplate<W> for Template7_200 {
-    #[rustfmt::skip]
-    fn debug_info(&self, writer: &mut W) -> std::io::Result<()>
-    where
-        W: std::io::Write,
-    {
-        writeln!(writer, "    ランレングス圧縮符号開始位置: 0x{:08X}", self.run_length_position)?;
-        writeln!(writer, "    ランレングス圧縮符号長さ: 0x{:08X}", self.run_length_bytes)?;
-
-        Ok(())
     }
 }
 
