@@ -263,21 +263,27 @@ pub struct Section5<T> {
 }
 
 /// テンプレート5.200
-#[derive(Debug, Clone, TemplateGetter)]
+#[derive(Debug, Clone, TemplateGetter, TemplateDebugInfo)]
 #[template_getter(section = "Section5", member = "template5")]
 pub struct Template5_200 {
-    /// 今回の圧縮に用いたレベルの最大値
     #[getter(ret = "val")]
+    #[debug_info(name = "今回の圧縮に用いたレベルの最大値")]
     max_level_value: u16,
-    /// データの取り得るレベルの最大値
     #[getter(ret = "val")]
+    #[debug_info(name = "データの取り得るレベルの最大値")]
     number_of_level_values: u16,
-    /// データ代表値の尺度因子
     #[getter(ret = "val")]
+    #[debug_info(name = "データ代表値の尺度因子")]
     decimal_scale_factor: u8,
-    /// レベルmに対応するデータ代表値
     /// レベル値と物理値(mm/h)の対応を格納するコレクション
     #[getter(ret = "ref", rty = "&[u16]")]
+    #[debug_info(
+        name = "レベルmに対応するデータ代表値",
+        data_type = "serial",
+        header = "レベル{}",
+        start = 1,
+        fmt = "{}"
+    )]
     level_values: Vec<u16>,
 }
 
@@ -729,23 +735,6 @@ impl TemplateFromReaderWithSize<u16> for Template5_200 {
     }
 }
 
-impl<W> DebugTemplate<W> for Template5_200 {
-    #[rustfmt::skip]
-    fn debug_info(&self, writer: &mut W) -> std::io::Result<()>
-    where
-        W: std::io::Write,
-    {
-        writeln!(writer, "    今回の圧縮に用いたレベルの最大値: {}", self.max_level_value)?;
-        writeln!(writer, "    データの取り得るレベルの最大値: {}", self.number_of_level_values)?;
-        writeln!(writer, "    データ代表値の尺度因子: {}", self.decimal_scale_factor)?;
-        writeln!(writer, "    レベルmに対応するデータ代表値:")?;
-        for (i, level_value) in self.level_values.iter().enumerate() {
-            writeln!(writer, "        レベル{}: {}", i + 1, level_value)?;
-        }
-
-        Ok(())
-    }
-}
 impl FromReader for Section6 {
     fn from_reader(reader: &mut FileReader) -> ReaderResult<Self> {
         // 節の長さ: 4バイト
