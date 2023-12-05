@@ -106,9 +106,9 @@ pub(crate) fn expr_to_u8(expr: Expr) -> Result<u8, ()> {
 }
 
 /// #[debug_info(name="debug_name", fmt="0x{:04X}")]
-///   ^^^^^^^^^^ ^^^^ <- パス(path)と属性名(key)を指定して
-///                   ^^^^^^^^^^^^ <- この部分を取得
-pub(crate) fn retrieve_value_by_path_and_key(
+///   ^^^^^^^^^^ ^^^^ ^^^^^^^^^^^^ <- パス(path)と属性名(key)を指定して値を取得
+///   path       key  value
+pub(crate) fn retrieve_value_from_name_value(
     attrs: &[Attribute],
     path: &str,
     key: &str,
