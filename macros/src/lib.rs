@@ -10,7 +10,7 @@ use getter::{derive_getter_impl, derive_template_getter_impl};
 
 /// ゲッター導出マクロ
 ///
-/// ```
+/// ```text
 /// #[derive(Getter)]
 /// pub struct Foo {
 ///     #[getter(ret="val")]
@@ -24,7 +24,7 @@ use getter::{derive_getter_impl, derive_template_getter_impl};
 ///
 /// 上記構造体から次を導出する。
 ///
-/// ```
+/// ```text
 /// impl Foo {
 ///     pub fn a(&self) -> i32 {
 ///         self.a
@@ -49,7 +49,7 @@ pub fn derive_getter(input: TokenStream) -> TokenStream {
 
 /// テンプレートゲッター導出マクロ
 ///
-/// ```
+/// ```text
 /// pub struct Section2<T2> {
 ///     template2: T2,
 /// }
@@ -68,7 +68,7 @@ pub fn derive_getter(input: TokenStream) -> TokenStream {
 ///
 /// 上記構造体から次を導出する。
 ///
-/// ```
+/// ```text
 /// impl Section2<Template2> {
 ///     pub fn a(&self) -> i32 {
 ///         self.template2.a
@@ -95,7 +95,7 @@ pub fn derive_template_getter(input: TokenStream) -> TokenStream {
 
 /// 節デバッグ情報出力導出マクロ
 ///
-/// ```
+/// ```text
 /// #[derive(SectionDebugInfo)]
 /// #[section(number=1, name="識別節")]
 /// pub struct Section1 {
@@ -119,7 +119,7 @@ pub fn derive_template_getter(input: TokenStream) -> TokenStream {
 ///
 /// 上記から次を導出する。
 ///
-/// ```
+/// ```text
 /// impl Section0 {
 ///     pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
 ///     where
@@ -158,7 +158,7 @@ pub fn derive_section_debug_info(input: TokenStream) -> TokenStream {
 
 /// 節デバッグ情報出力導出マクロ
 ///
-/// ```
+/// ```text
 /// #[derive(TemplateDebugInfo)]
 /// pub struct Template3_0 {
 ///     #[debug_info(name="地球の形状", fmt="{}")]
@@ -171,7 +171,7 @@ pub fn derive_section_debug_info(input: TokenStream) -> TokenStream {
 ///
 /// 上記構造体から次を導出する。
 ///
-/// ```
+/// ```text
 /// impl<W> DebugTemplate<W> for Template3_0 {
 ///     fn debug_info(&self, writer: &mut W) -> std::io::Result<()> {
 ///         write!(writer, "    地球の形状: {}", self.shape_of_earth)?;

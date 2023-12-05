@@ -1,4 +1,4 @@
 /target
 /.vscode
-/resources/analysis_rainfall.csv
-/resources/analysis_rainfall_with_mesh3.csv
+*.csv
+!analysis_rainfall.org.csv

@@ -5,7 +5,7 @@ use grib2::reader::AnalysisRainfallReader;
 
 #[test]
 #[ignore]
-fn convert_to_csv() {
+fn analysis_rainfall() {
     // GRIB2ファイルを読み込みCSVファイルに座標を出力
     let input = "../resources/analysis_rainfall.bin";
     let mut reader = AnalysisRainfallReader::new(input).unwrap();
