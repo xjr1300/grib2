@@ -1,6 +1,6 @@
 use std::io::{Read, Seek};
 
-use time::{Date, Month, PrimitiveDateTime, Time};
+use time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time};
 
 use super::{FileReader, ReaderError, ReaderResult};
 use macros::{Getter, SectionDebugInfo, TemplateDebugInfo, TemplateGetter};
@@ -62,8 +62,8 @@ pub struct Section1 {
     #[debug_info(name = "参照時刻の意味")]
     significance_of_reference_time: u8,
     #[getter(ret = "val")]
-    #[debug_info(name = "資料の参照時刻")]
-    referenced_at: PrimitiveDateTime,
+    #[debug_info(name = "資料の参照時刻(UTC)")]
+    referenced_at: OffsetDateTime,
     #[getter(ret = "val")]
     #[debug_info(name = "作成ステータス")]
     production_status_of_processed_data: u8,
@@ -205,8 +205,8 @@ pub struct Template4_50008 {
     #[debug_info(name = "第一固定面の種類")]
     type_of_first_fixed_surface: u8,
     #[getter(ret = "val")]
-    #[debug_info(name = "全時間間隔の終了時")]
-    end_of_all_time_intervals: PrimitiveDateTime,
+    #[debug_info(name = "全時間間隔の終了時(UTC)")]
+    end_of_all_time_intervals: OffsetDateTime,
     #[getter(ret = "val")]
     #[debug_info(name = "統計を算出するために使用した時間間隔を記述する期間の仕様の数")]
     number_of_time_range_specs: u8,
@@ -922,7 +922,7 @@ fn read_str(reader: &mut FileReader, size: usize) -> ReaderResult<String> {
     }))?
 }
 
-fn read_datetime(reader: &mut FileReader, name: &str) -> ReaderResult<PrimitiveDateTime> {
+fn read_datetime(reader: &mut FileReader, name: &str) -> ReaderResult<OffsetDateTime> {
     let year = read_u16(reader, name)?;
     let mut parts = Vec::new();
     for _ in 0..5 {
@@ -941,7 +941,7 @@ fn read_datetime(reader: &mut FileReader, name: &str) -> ReaderResult<PrimitiveD
     let date = Date::from_calendar_date(year as i32, month, parts[1]).map_err(|_| {
         ReaderError::Unexpected(
             format!(
-                "{}:{}年{}月は{}日を日付に変換できませんでした。",
+                "{}:{}年{}月{}日を日付に変換できませんでした。",
                 name, year, month as u8, parts[1]
             )
             .into(),
@@ -957,7 +957,7 @@ fn read_datetime(reader: &mut FileReader, name: &str) -> ReaderResult<PrimitiveD
         )
     })?;
 
-    Ok(PrimitiveDateTime::new(date, time))
+    Ok(PrimitiveDateTime::new(date, time).assume_utc())
 }
 
 pub(crate) trait FromReader {
