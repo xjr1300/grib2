@@ -5,16 +5,11 @@ use std::path::Path;
 use num_format::{Locale, ToFormattedString};
 
 use super::sections::{
-    FromReader, Section0, Section1, Section2, Section3, Section4, Section5, Section6, Section7,
-    Section8, Template3_0, Template4_50008, Template5_200, Template7_200,
+    FromReader, Section0, Section1, Section2, Section3_0, Section4_50008, Section5_200, Section6,
+    Section7_200, Section8,
 };
 use super::value_iter::Grib2ValueIter;
 use super::{FileReader, ReaderError, ReaderResult};
-
-pub type Section3_0 = Section3<Template3_0>;
-pub type Section4_50008 = Section4<Template4_50008>;
-pub type Section5_200 = Section5<Template5_200>;
-pub type Section7_200 = Section7<Template7_200>;
 
 /// 解析雨量リーダー
 ///
