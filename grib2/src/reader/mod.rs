@@ -5,11 +5,13 @@ use std::io::BufReader;
 mod arf_reader;
 mod aswi_reader;
 mod sections;
+pub mod srpf_reader;
 mod value;
 mod value_iter;
 
 pub use arf_reader::ArfReader;
 pub use aswi_reader::AswiReader;
+pub use srpf_reader::SrpfReader;
 pub use value::Grib2Value;
 pub use value_iter::Grib2ValueIter;
 

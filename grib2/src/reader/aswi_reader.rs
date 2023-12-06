@@ -2,15 +2,10 @@ use std::io::{Seek, SeekFrom};
 use std::{fs::File, path::Path};
 
 use super::sections::{
-    FromReader, Section0, Section1, Section2, Section3, Section4, Section5, Section6, Section7,
-    Section8, Template3_0, Template4_0, Template5_200, Template7_200,
+    FromReader, Section0, Section1, Section2, Section3_0, Section4_0, Section5_200, Section6,
+    Section7_200, Section8,
 };
 use super::{FileReader, Grib2ValueIter, ReaderError, ReaderResult};
-
-pub type Section3_0 = Section3<Template3_0>;
-pub type Section4_0 = Section4<Template4_0>;
-pub type Section5_200 = Section5<Template5_200>;
-pub type Section7_200 = Section7<Template7_200>;
 
 /// 土壌雨量指数実況値リーダー
 ///
@@ -31,7 +26,7 @@ where
     section8: Section8,
 }
 
-fn actual_swi_value_from_reader(reader: &mut FileReader) -> ReaderResult<ActualSwiValue> {
+fn aswi_value_from_reader(reader: &mut FileReader) -> ReaderResult<ActualSwiValue> {
     let section4 = Section4_0::from_reader(reader)?;
     let section5 = Section5_200::from_reader(reader)?;
     let section6 = Section6::from_reader(reader)?;
@@ -74,9 +69,9 @@ where
         let section1 = Section1::from_reader(&mut reader)?;
         let section2 = Section2::from_reader(&mut reader)?;
         let section3 = Section3_0::from_reader(&mut reader)?;
-        let swi = actual_swi_value_from_reader(&mut reader)?;
-        let first_tank = actual_swi_value_from_reader(&mut reader)?;
-        let second_tank = actual_swi_value_from_reader(&mut reader)?;
+        let swi = aswi_value_from_reader(&mut reader)?;
+        let first_tank = aswi_value_from_reader(&mut reader)?;
+        let second_tank = aswi_value_from_reader(&mut reader)?;
         let section8 = Section8::from_reader(&mut reader)?;
 
         Ok(Self {
