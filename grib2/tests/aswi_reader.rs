@@ -25,7 +25,11 @@ fn test_aswi_reader() {
         .unwrap();
     let mut writer = BufWriter::new(file);
     writeln!(writer, "longitude,latitude,value").unwrap();
-    write_values(&mut writer, reader.swi_values().unwrap(), number_of_points);
+    write_values(
+        &mut writer,
+        reader.swi_value_iter().unwrap(),
+        number_of_points,
+    );
 
     // 第一タンクの値を出力
     let output = "../resources/actual_swi_1.csv";
@@ -39,7 +43,7 @@ fn test_aswi_reader() {
     writeln!(writer, "longitude,latitude,value").unwrap();
     write_values(
         &mut writer,
-        reader.first_tank_values().unwrap(),
+        reader.first_tank_value_iter().unwrap(),
         number_of_points,
     );
 
@@ -55,7 +59,7 @@ fn test_aswi_reader() {
     writeln!(writer, "longitude,latitude,value").unwrap();
     write_values(
         &mut writer,
-        reader.second_tank_values().unwrap(),
+        reader.second_tank_value_iter().unwrap(),
         number_of_points,
     );
 }

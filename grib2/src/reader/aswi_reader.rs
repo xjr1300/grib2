@@ -22,17 +22,17 @@ where
     /// インデックス0: 土壌雨量指数
     /// インデックス1: 第一タンク
     /// インデックス2: 第二タンク
-    tanks: [ActualSwiValue; 3],
+    swi_sections_array: [SwiSections; 3],
     section8: Section8,
 }
 
-fn aswi_value_from_reader(reader: &mut FileReader) -> ReaderResult<ActualSwiValue> {
+fn aswi_value_from_reader(reader: &mut FileReader) -> ReaderResult<SwiSections> {
     let section4 = Section4_0::from_reader(reader)?;
     let section5 = Section5_200::from_reader(reader)?;
     let section6 = Section6::from_reader(reader)?;
     let section7 = Section7_200::from_reader(reader)?;
 
-    Ok(ActualSwiValue {
+    Ok(SwiSections {
         section4,
         section5,
         section6,
@@ -80,7 +80,7 @@ where
             section1,
             section2,
             section3,
-            tanks: [swi, first_tank, second_tank],
+            swi_sections_array: [swi, first_tank, second_tank],
             section8,
         })
     }
@@ -126,8 +126,8 @@ where
     /// # 戻り値
     ///
     /// 土壌雨量指数を記録した第4節から第7節までの節を返す。
-    pub fn swi(&self) -> &ActualSwiValue {
-        &self.tanks[Tank::Swi as usize]
+    pub fn swi_sections(&self) -> &SwiSections {
+        &self.swi_sections_array[Tank::Swi as usize]
     }
 
     /// 第一タンクを返す。
@@ -135,8 +135,8 @@ where
     /// # 戻り値
     ///
     /// 第一タンクを記録した第4節から第7節までの節を返す。
-    pub fn first_tank(&self) -> &ActualSwiValue {
-        &self.tanks[Tank::First as usize]
+    pub fn first_tank_sections(&self) -> &SwiSections {
+        &self.swi_sections_array[Tank::First as usize]
     }
 
     /// 第二タンクを返す。
@@ -144,8 +144,8 @@ where
     /// # 戻り値
     ///
     /// 第二タンクを記録した第4節から第7節までの節を返す。
-    pub fn second_tank(&self) -> &ActualSwiValue {
-        &self.tanks[Tank::Second as usize]
+    pub fn second_tank_sections(&self) -> &SwiSections {
+        &self.swi_sections_array[Tank::Second as usize]
     }
 
     /// 第8節:終端節を返す。
@@ -157,8 +157,8 @@ where
         &self.section8
     }
 
-    fn tank_values(&mut self, tank: Tank) -> ReaderResult<Grib2ValueIter<'_>> {
-        let value_sections = &self.tanks[tank as usize];
+    fn value_iter(&mut self, tank: Tank) -> ReaderResult<Grib2ValueIter<'_>> {
+        let value_sections = &self.swi_sections_array[tank as usize];
         let file = File::open(self.path.as_ref())
             .map_err(|e| ReaderError::NotFount(e.to_string().into()))?;
         let mut reader = FileReader::new(file);
@@ -190,8 +190,8 @@ where
     /// # 戻り値
     ///
     /// 土壌雨量指数を返すイテレーター
-    pub fn swi_values(&mut self) -> ReaderResult<Grib2ValueIter<'_>> {
-        self.tank_values(Tank::Swi)
+    pub fn swi_value_iter(&mut self) -> ReaderResult<Grib2ValueIter<'_>> {
+        self.value_iter(Tank::Swi)
     }
 
     /// 第一タンクの値を返すイテレーターを返す。
@@ -199,8 +199,8 @@ where
     /// # 戻り値
     ///
     /// 第一タンクの値を返すイテレーター
-    pub fn first_tank_values(&mut self) -> ReaderResult<Grib2ValueIter<'_>> {
-        self.tank_values(Tank::First)
+    pub fn first_tank_value_iter(&mut self) -> ReaderResult<Grib2ValueIter<'_>> {
+        self.value_iter(Tank::First)
     }
 
     /// 第二タンクの値を返すイテレーターを返す。
@@ -208,8 +208,8 @@ where
     /// # 戻り値
     ///
     /// 第二タンクの値を返すイテレーター
-    pub fn second_tank_values(&mut self) -> ReaderResult<Grib2ValueIter<'_>> {
-        self.tank_values(Tank::Second)
+    pub fn second_tank_value_iter(&mut self) -> ReaderResult<Grib2ValueIter<'_>> {
+        self.value_iter(Tank::Second)
     }
 
     /// 全ての節を出力する。
@@ -226,13 +226,13 @@ where
         self.section3.debug_info(writer)?;
         writeln!(writer)?;
         writeln!(writer, "土壌雨量指数:")?;
-        self.swi().debug_info(writer)?;
+        self.swi_sections().debug_info(writer)?;
         writeln!(writer)?;
         writeln!(writer, "第一タンク:")?;
-        self.first_tank().debug_info(writer)?;
+        self.first_tank_sections().debug_info(writer)?;
         writeln!(writer)?;
         writeln!(writer, "第二タンク:")?;
-        self.second_tank().debug_info(writer)?;
+        self.second_tank_sections().debug_info(writer)?;
         writeln!(writer)?;
         self.section8.debug_info(writer)?;
         writeln!(writer)?;
@@ -241,14 +241,14 @@ where
     }
 }
 
-pub struct ActualSwiValue {
+pub struct SwiSections {
     section4: Section4_0,
     section5: Section5_200,
     section6: Section6,
     section7: Section7_200,
 }
 
-impl ActualSwiValue {
+impl SwiSections {
     /// 第4節:プロダクト定義節を返す。
     ///
     /// # 戻り値
