@@ -1049,7 +1049,20 @@ read_number!(read_u8, u8);
 read_number!(read_u16, u16);
 read_number!(read_u32, u32);
 read_number!(read_u64, u64);
-read_number!(read_i32, i32);
+
+fn read_i32(reader: &mut FileReader, name: &str) -> ReaderResult<i32> {
+    let expected_bytes = std::mem::size_of::<i32>();
+    let mut buf = vec![0_u8; expected_bytes];
+    reader.read_exact(&mut buf).map_err(|_| {
+        ReaderError::ReadError(format!("{}の読み込みに失敗しました。", name).into())
+    })?;
+    // 最上位ビットを確認(0であれば正の数、1であれば負の数)
+    let sign = if buf[0] & 0b1000_0000 == 0 { 1 } else { -1 };
+    // 最上位ビットを0にした結果をデコード
+    buf[0] &= 0b0111_1111;
+
+    Ok(<i32>::from_be_bytes(buf.try_into().unwrap()) * sign)
+}
 
 /// 数値を読み込み検証する関数を生成するマクロ
 macro_rules! validate_number {
