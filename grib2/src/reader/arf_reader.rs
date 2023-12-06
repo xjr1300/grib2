@@ -17,7 +17,9 @@ pub type Section5_200 = Section5<Template5_200>;
 pub type Section7_200 = Section7<Template7_200>;
 
 /// 解析雨量リーダー
-pub struct AnalysisRainfallReader<P>
+///
+/// 解析雨量: Analysis Rainfall
+pub struct ArfReader<P>
 where
     P: AsRef<Path>,
 {
@@ -43,7 +45,7 @@ where
     section8: Section8,
 }
 
-impl<P> AnalysisRainfallReader<P>
+impl<P> ArfReader<P>
 where
     P: AsRef<Path>,
 {
@@ -80,7 +82,7 @@ where
             ));
         }
 
-        Ok(AnalysisRainfallReader {
+        Ok(ArfReader {
             path,
             section0,
             section1,

@@ -1,14 +1,14 @@
 use std::fs::{File, OpenOptions};
 use std::io::{stdout, BufWriter, Write};
 
-use grib2::reader::{ActualSwiReader, Grib2ValueIter};
+use grib2::reader::{AswiReader, Grib2ValueIter};
 
 #[test]
 #[ignore]
-fn actual_swi() {
+fn test_aswi_reader() {
     // GRIB2ファイルを読み込みCSVファイルに座標を出力
     let input = "../resources/actual_swi.bin";
-    let mut reader = ActualSwiReader::new(input).unwrap();
+    let mut reader = AswiReader::new(input).unwrap();
     let handle = stdout().lock();
     let mut writer = BufWriter::new(handle);
     reader.debug_info(&mut writer).unwrap();
