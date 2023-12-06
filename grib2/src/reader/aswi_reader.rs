@@ -13,7 +13,9 @@ pub type Section5_200 = Section5<Template5_200>;
 pub type Section7_200 = Section7<Template7_200>;
 
 /// 土壌雨量指数実況値リーダー
-pub struct ActualSwiReader<P>
+///
+/// 土壌雨量指数実況値: Actual Soil Water Index
+pub struct AswiReader<P>
 where
     P: AsRef<Path>,
 {
@@ -51,7 +53,7 @@ enum Tank {
     Second = 2,
 }
 
-impl<P> ActualSwiReader<P>
+impl<P> AswiReader<P>
 where
     P: AsRef<Path>,
 {

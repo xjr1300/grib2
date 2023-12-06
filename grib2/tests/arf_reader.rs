@@ -1,14 +1,14 @@
 use std::fs::{File, OpenOptions};
 use std::io::{stdout, BufRead, BufReader, BufWriter, Write};
 
-use grib2::reader::AnalysisRainfallReader;
+use grib2::reader::ArfReader;
 
 #[test]
 #[ignore]
-fn analysis_rainfall() {
+fn test_arf_reader() {
     // GRIB2ファイルを読み込みCSVファイルに座標を出力
     let input = "../resources/analysis_rainfall.bin";
-    let mut reader = AnalysisRainfallReader::new(input).unwrap();
+    let mut reader = ArfReader::new(input).unwrap();
     {
         let handle = stdout().lock();
         let mut writer = BufWriter::new(handle);
