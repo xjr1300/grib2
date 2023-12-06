@@ -1057,9 +1057,9 @@ fn read_i32(reader: &mut FileReader, name: &str) -> ReaderResult<i32> {
         ReaderError::ReadError(format!("{}の読み込みに失敗しました。", name).into())
     })?;
     // 最上位ビットを確認(0であれば正の数、1であれば負の数)
-    let sign = if buf[0] & 0b1000_0000 == 0 { 1 } else { -1 };
+    let sign = if buf[0] & 0x80 == 0 { 1 } else { -1 };
     // 最上位ビットを0にした結果をデコード
-    buf[0] &= 0b0111_1111;
+    buf[0] &= 0x7F;
 
     Ok(<i32>::from_be_bytes(buf.try_into().unwrap()) * sign)
 }
