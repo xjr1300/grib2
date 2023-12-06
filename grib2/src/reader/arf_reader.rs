@@ -11,7 +11,7 @@ use super::sections::{
 use super::value_iter::Grib2ValueIter;
 use super::{FileReader, ReaderError, ReaderResult};
 
-/// 解析雨量リーダー
+/// 1kmメッシュ解析雨量リーダー
 ///
 /// 解析雨量: Analysis Rainfall
 pub struct ArfReader<P>

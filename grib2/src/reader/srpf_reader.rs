@@ -8,7 +8,7 @@ use super::sections::{
 };
 use super::{FileReader, Grib2ValueIter, ReaderError, ReaderResult};
 
-/// 降水短時間予報リーダー
+/// 1kmメッシュ降水短時間予報リーダー
 ///
 /// 降水短時間予報: Short Range Precipitation Forecast
 pub struct SrpfReader<P>

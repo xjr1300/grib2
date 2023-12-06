@@ -7,7 +7,7 @@ use super::sections::{
 };
 use super::{FileReader, Grib2ValueIter, ReaderError, ReaderResult};
 
-/// 土壌雨量指数実況値リーダー
+/// 土壌雨量指数実況値（1kmメッシュ）値リーダー
 ///
 /// 土壌雨量指数実況値: Actual Soil Water Index
 pub struct AswiReader<P>
