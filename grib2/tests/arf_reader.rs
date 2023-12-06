@@ -9,11 +9,10 @@ fn test_arf_reader() {
     // GRIB2ファイルを読み込みCSVファイルに座標を出力
     let input = "../resources/analysis_rainfall.bin";
     let mut reader = ArfReader::new(input).unwrap();
-    {
-        let handle = stdout().lock();
-        let mut writer = BufWriter::new(handle);
-        reader.debug_info(&mut writer).unwrap();
-    }
+    let handle = stdout().lock();
+    let mut writer = BufWriter::new(handle);
+    reader.debug_info(&mut writer).unwrap();
+    writer.flush().unwrap();
 
     let output = "../resources/analysis_rainfall.csv";
     let file = OpenOptions::new()

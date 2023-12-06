@@ -12,6 +12,7 @@ fn test_aswi_reader() {
     let handle = stdout().lock();
     let mut writer = BufWriter::new(handle);
     reader.debug_info(&mut writer).unwrap();
+    writer.flush().unwrap();
     let number_of_points = reader.section3().number_of_data_points();
 
     // 土壌雨量指数を出力
