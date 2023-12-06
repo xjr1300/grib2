@@ -3,11 +3,11 @@ use std::io::{BufWriter, Write};
 
 use gsjp::{Coordinate, Mesh, Mesh3};
 
-use grib2::reader::AnalysisRainfallReader;
+use grib2::reader::ArfReader;
 
 fn main() {
     let input = "resources/analysis_rainfall.bin";
-    let mut reader = AnalysisRainfallReader::new(input).unwrap();
+    let mut reader = ArfReader::new(input).unwrap();
     let output = "resources/analysis_rainfall_with_mesh3.csv";
     let file = OpenOptions::new()
         .write(true)
