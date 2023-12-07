@@ -2,8 +2,7 @@ use std::io::{Seek, SeekFrom};
 use std::{fs::File, path::Path};
 
 use super::sections::{
-    FromReader, Section0, Section1, Section2, Section3_0, Section4_0, Section5_200, Section6,
-    Section7_200, Section8,
+    FromReader, Section0, Section1, Section2, Section3_0, Section8, SwiSections,
 };
 use super::{FileReader, Grib2ValueIter, ReaderError, ReaderResult};
 
@@ -24,20 +23,6 @@ where
     /// インデックス2: 第二タンク
     swi_sections_array: [SwiSections; 3],
     section8: Section8,
-}
-
-fn aswi_value_from_reader(reader: &mut FileReader) -> ReaderResult<SwiSections> {
-    let section4 = Section4_0::from_reader(reader)?;
-    let section5 = Section5_200::from_reader(reader)?;
-    let section6 = Section6::from_reader(reader)?;
-    let section7 = Section7_200::from_reader(reader)?;
-
-    Ok(SwiSections {
-        section4,
-        section5,
-        section6,
-        section7,
-    })
 }
 
 #[repr(C)]
@@ -69,9 +54,9 @@ where
         let section1 = Section1::from_reader(&mut reader)?;
         let section2 = Section2::from_reader(&mut reader)?;
         let section3 = Section3_0::from_reader(&mut reader)?;
-        let swi = aswi_value_from_reader(&mut reader)?;
-        let first_tank = aswi_value_from_reader(&mut reader)?;
-        let second_tank = aswi_value_from_reader(&mut reader)?;
+        let swi = SwiSections::from_reader(&mut reader)?;
+        let first_tank = SwiSections::from_reader(&mut reader)?;
+        let second_tank = SwiSections::from_reader(&mut reader)?;
         let section8 = Section8::from_reader(&mut reader)?;
 
         Ok(Self {
@@ -164,7 +149,7 @@ where
         let mut reader = FileReader::new(file);
         reader
             .seek(SeekFrom::Start(
-                value_sections.section7.run_length_position() as u64,
+                value_sections.section7().run_length_position() as u64,
             ))
             .map_err(|_| {
                 ReaderError::ReadError("ランレングス圧縮符号列のシークに失敗しました。".into())
@@ -172,16 +157,16 @@ where
 
         Ok(Grib2ValueIter::new(
             reader,
-            value_sections.section7.run_length_bytes(),
+            value_sections.section7().run_length_bytes(),
             self.section3.number_of_data_points(),
             self.section3.lat_of_first_grid_point(),
             self.section3.lon_of_first_grid_point(),
             self.section3.lon_of_last_grid_point(),
             self.section3.j_direction_increment(),
             self.section3.i_direction_increment(),
-            value_sections.section5.bits_per_value() as u16,
-            value_sections.section5.max_level_value(),
-            value_sections.section5.level_values(),
+            value_sections.section5().bits_per_value() as u16,
+            value_sections.section5().max_level_value(),
+            value_sections.section5().level_values(),
         ))
     }
 
@@ -236,67 +221,6 @@ where
         writeln!(writer)?;
         self.section8.debug_info(writer)?;
         writeln!(writer)?;
-
-        Ok(())
-    }
-}
-
-pub struct SwiSections {
-    section4: Section4_0,
-    section5: Section5_200,
-    section6: Section6,
-    section7: Section7_200,
-}
-
-impl SwiSections {
-    /// 第4節:プロダクト定義節を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 第4節:プロダクト定義節
-    pub fn section4(&self) -> &Section4_0 {
-        &self.section4
-    }
-
-    /// 第5節:資料表現節を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 第5節:資料表現節
-    pub fn section5(&self) -> &Section5_200 {
-        &self.section5
-    }
-
-    /// 第6節:ビットマップ節を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 第6節:ビットマップ節
-    pub fn section6(&self) -> &Section6 {
-        &self.section6
-    }
-
-    /// 第7節:資料節を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 第7節:資料節
-    pub fn section7(&self) -> &Section7_200 {
-        &self.section7
-    }
-
-    /// 第4節から第7節を出力する。
-    pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
-    where
-        W: std::io::Write,
-    {
-        self.section4.debug_info(writer)?;
-        writeln!(writer)?;
-        self.section5.debug_info(writer)?;
-        writeln!(writer)?;
-        self.section6.debug_info(writer)?;
-        writeln!(writer)?;
-        self.section7.debug_info(writer)?;
 
         Ok(())
     }

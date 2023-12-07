@@ -1202,6 +1202,82 @@ impl TemplateFromReaderWithSize<u16> for Template7_200 {
     }
 }
 
+/// 土壌雨量指数の第4節から第7節
+pub struct SwiSections {
+    section4: Section4_0,
+    section5: Section5_200,
+    section6: Section6,
+    section7: Section7_200,
+}
+
+impl SwiSections {
+    pub(crate) fn from_reader(reader: &mut FileReader) -> ReaderResult<SwiSections> {
+        let section4 = Section4_0::from_reader(reader)?;
+        let section5 = Section5_200::from_reader(reader)?;
+        let section6 = Section6::from_reader(reader)?;
+        let section7 = Section7_200::from_reader(reader)?;
+
+        Ok(SwiSections {
+            section4,
+            section5,
+            section6,
+            section7,
+        })
+    }
+
+    /// 第4節:プロダクト定義節を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 第4節:プロダクト定義節
+    pub fn section4(&self) -> &Section4_0 {
+        &self.section4
+    }
+
+    /// 第5節:資料表現節を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 第5節:資料表現節
+    pub fn section5(&self) -> &Section5_200 {
+        &self.section5
+    }
+
+    /// 第6節:ビットマップ節を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 第6節:ビットマップ節
+    pub fn section6(&self) -> &Section6 {
+        &self.section6
+    }
+
+    /// 第7節:資料節を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 第7節:資料節
+    pub fn section7(&self) -> &Section7_200 {
+        &self.section7
+    }
+
+    /// 第4節から第7節を出力する。
+    pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
+    where
+        W: std::io::Write,
+    {
+        self.section4.debug_info(writer)?;
+        writeln!(writer)?;
+        self.section5.debug_info(writer)?;
+        writeln!(writer)?;
+        self.section6.debug_info(writer)?;
+        writeln!(writer)?;
+        self.section7.debug_info(writer)?;
+
+        Ok(())
+    }
+}
+
 impl FromReader for Section8 {
     fn from_reader(reader: &mut FileReader) -> ReaderResult<Self> {
         // 第8節:終端マーカー
