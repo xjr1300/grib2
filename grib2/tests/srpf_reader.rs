@@ -1,7 +1,7 @@
 use std::fs::{File, OpenOptions};
 use std::io::{stdout, BufWriter, Write};
 
-use grib2::reader::srpf_reader::ForecastHour;
+use grib2::reader::ForecastHour6;
 use grib2::reader::{Grib2ValueIter, SrpfReader};
 
 #[test]
@@ -30,7 +30,7 @@ fn test_srpf_reader() {
             .unwrap();
         let mut writer = BufWriter::new(file);
         writeln!(writer, "longitude,latitude,value").unwrap();
-        let forecast_hour = ForecastHour::try_from(i + 1).unwrap();
+        let forecast_hour = ForecastHour6::try_from(i + 1).unwrap();
         let value_iter = reader.forecast_value_iter(forecast_hour).unwrap();
         write_values(&mut writer, value_iter, number_of_points);
     }

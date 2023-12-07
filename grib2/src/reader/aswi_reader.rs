@@ -4,7 +4,7 @@ use std::{fs::File, path::Path};
 use super::sections::{
     FromReader, Section0, Section1, Section2, Section3_0, Section8, SwiSections,
 };
-use super::{FileReader, Grib2ValueIter, ReaderError, ReaderResult};
+use super::{FileReader, Grib2ValueIter, ReaderError, ReaderResult, SwiTank};
 
 /// 土壌雨量指数実況値（1kmメッシュ）値リーダー
 ///
@@ -21,16 +21,8 @@ where
     /// インデックス0: 土壌雨量指数
     /// インデックス1: 第一タンク
     /// インデックス2: 第二タンク
-    swi_sections_array: [SwiSections; 3],
+    tanks: [SwiSections; 3],
     section8: Section8,
-}
-
-#[repr(C)]
-#[derive(Debug, Clone, Copy, PartialEq)]
-enum Tank {
-    Swi = 0,
-    First = 1,
-    Second = 2,
 }
 
 impl<P> AswiReader<P>
@@ -65,7 +57,7 @@ where
             section1,
             section2,
             section3,
-            swi_sections_array: [swi, first_tank, second_tank],
+            tanks: [swi, first_tank, second_tank],
             section8,
         })
     }
@@ -112,7 +104,7 @@ where
     ///
     /// 土壌雨量指数を記録した第4節から第7節までの節を返す。
     pub fn swi_sections(&self) -> &SwiSections {
-        &self.swi_sections_array[Tank::Swi as usize]
+        &self.tanks[SwiTank::Swi as usize]
     }
 
     /// 第一タンクを返す。
@@ -121,7 +113,7 @@ where
     ///
     /// 第一タンクを記録した第4節から第7節までの節を返す。
     pub fn first_tank_sections(&self) -> &SwiSections {
-        &self.swi_sections_array[Tank::First as usize]
+        &self.tanks[SwiTank::First as usize]
     }
 
     /// 第二タンクを返す。
@@ -130,7 +122,7 @@ where
     ///
     /// 第二タンクを記録した第4節から第7節までの節を返す。
     pub fn second_tank_sections(&self) -> &SwiSections {
-        &self.swi_sections_array[Tank::Second as usize]
+        &self.tanks[SwiTank::Second as usize]
     }
 
     /// 第8節:終端節を返す。
@@ -142,8 +134,8 @@ where
         &self.section8
     }
 
-    fn value_iter(&mut self, tank: Tank) -> ReaderResult<Grib2ValueIter<'_>> {
-        let value_sections = &self.swi_sections_array[tank as usize];
+    fn value_iter(&mut self, tank: SwiTank) -> ReaderResult<Grib2ValueIter<'_>> {
+        let value_sections = &self.tanks[tank as usize];
         let file = File::open(self.path.as_ref())
             .map_err(|e| ReaderError::NotFount(e.to_string().into()))?;
         let mut reader = FileReader::new(file);
@@ -176,7 +168,7 @@ where
     ///
     /// 土壌雨量指数を返すイテレーター
     pub fn swi_value_iter(&mut self) -> ReaderResult<Grib2ValueIter<'_>> {
-        self.value_iter(Tank::Swi)
+        self.value_iter(SwiTank::Swi)
     }
 
     /// 第一タンクの値を返すイテレーターを返す。
@@ -185,7 +177,7 @@ where
     ///
     /// 第一タンクの値を返すイテレーター
     pub fn first_tank_value_iter(&mut self) -> ReaderResult<Grib2ValueIter<'_>> {
-        self.value_iter(Tank::First)
+        self.value_iter(SwiTank::First)
     }
 
     /// 第二タンクの値を返すイテレーターを返す。
@@ -194,7 +186,7 @@ where
     ///
     /// 第二タンクの値を返すイテレーター
     pub fn second_tank_value_iter(&mut self) -> ReaderResult<Grib2ValueIter<'_>> {
-        self.value_iter(Tank::Second)
+        self.value_iter(SwiTank::Second)
     }
 
     /// 全ての節を出力する。
