@@ -91,6 +91,8 @@ pub(crate) fn derive_template_getter_impl(input: DeriveInput) -> syn::Result<Tok
 
     // テンプレート構造体の識別子を取得
     let template_ident = &input.ident;
+    // 構造体のジェネリックスを取得
+    let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
     // テンプレート構造体の可視性を取得
     let vis = &input.vis;
 
@@ -105,7 +107,7 @@ pub(crate) fn derive_template_getter_impl(input: DeriveInput) -> syn::Result<Tok
     }
 
     Ok(quote! {
-        impl #section<#template_ident> {
+        impl #impl_generics #section<#template_ident> #ty_generics #where_clause {
             #(
                 #getter_methods
             )*
