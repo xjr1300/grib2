@@ -2,18 +2,18 @@ use std::borrow::Cow;
 use std::fs::File;
 use std::io::BufReader;
 
-mod arf_reader;
-mod aswi_reader;
+mod arf;
+mod aswi;
 mod sections;
-pub mod srpf_reader;
-mod swi6f_reader;
+pub mod srpf;
+mod swi6f;
 mod value;
 mod value_iter;
 
-pub use arf_reader::ArfReader;
-pub use aswi_reader::AswiReader;
-pub use srpf_reader::SrpfReader;
-pub use swi6f_reader::Swi6fReader;
+pub use arf::ArfReader;
+pub use aswi::AswiReader;
+pub use srpf::SrpfReader;
+pub use swi6f::Swi6fReader;
 pub use value::Grib2Value;
 pub use value_iter::Grib2ValueIter;
 
@@ -112,4 +112,17 @@ impl TryFrom<u8> for SwiTank {
             _ => Err("SwiTankに変換できる数値は0から2までです。"),
         }
     }
+}
+
+pub(crate) fn vec_to_fixed_array<T, const N: usize>(v: Vec<T>) -> ReaderResult<[T; N]> {
+    v.try_into().map_err(|v: Vec<T>| {
+        ReaderError::Unexpected(
+            format!(
+                "配列の長さが{}である必要がありますが、{}でした。",
+                N,
+                v.len()
+            )
+            .into(),
+        )
+    })
 }
