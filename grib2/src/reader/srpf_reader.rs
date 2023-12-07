@@ -6,7 +6,7 @@ use super::sections::{
     FromReader, Section0, Section1, Section2, Section3_0, Section4_50009, Section5_200, Section6,
     Section7_200, Section8,
 };
-use super::{FileReader, Grib2ValueIter, ReaderError, ReaderResult};
+use super::{FileReader, ForecastHour6, Grib2ValueIter, ReaderError, ReaderResult};
 
 /// 1kmメッシュ降水短時間予報リーダー
 ///
@@ -20,61 +20,39 @@ where
     section1: Section1,
     section2: Section2,
     section3: Section3_0,
-    forecast_sections: [SrpfForecast; 6],
+    forecasts: [SrpfSections; 6],
     section8: Section8,
 }
 
-#[repr(C)]
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum ForecastHour {
-    Hour1 = 1,
-    Hour2 = 2,
-    Hour3 = 3,
-    Hour4 = 4,
-    Hour5 = 5,
-    Hour6 = 6,
-}
-
-impl TryFrom<i32> for ForecastHour {
-    type Error = &'static str;
-
-    fn try_from(value: i32) -> Result<Self, Self::Error> {
-        match value {
-            1 => Ok(ForecastHour::Hour1),
-            2 => Ok(ForecastHour::Hour2),
-            3 => Ok(ForecastHour::Hour3),
-            4 => Ok(ForecastHour::Hour4),
-            5 => Ok(ForecastHour::Hour5),
-            6 => Ok(ForecastHour::Hour6),
-            _ => Err("ForecastHourに変換できる数値は1から6までです。"),
-        }
-    }
-}
-
-pub struct SrpfForecast {
+pub struct SrpfSections {
     section4: Section4_50009,
     section5: Section5_200,
     section6: Section6,
     section7: Section7_200,
 }
 
-/// 時間別の降水短時間予報を返すメソッドを生成するマクロ
-macro_rules! impl_forecast_hours {
-    ($([$fn:ident, $hour:ident]),*) => {
-        $(
-            pub fn $fn(&self) -> &SrpfForecast {
-                &self.forecast_sections[ForecastHour::$hour as usize - 1]
-            }
-        )*
+impl SrpfSections {
+    fn from_reader(reader: &mut FileReader) -> ReaderResult<Self> {
+        let section4 = Section4_50009::from_reader(reader)?;
+        let section5 = Section5_200::from_reader(reader)?;
+        let section6 = Section6::from_reader(reader)?;
+        let section7 = Section7_200::from_reader(reader)?;
+
+        Ok(SrpfSections {
+            section4,
+            section5,
+            section6,
+            section7,
+        })
     }
 }
 
-/// 時間別の降水短時間予測値を返すイテレーターを返すメソッドを生成するマクロ
+/// 時間別の降水短時間予想値を返すイテレーターを返すメソッドを生成するマクロ
 macro_rules! impl_forecast_values_iter {
     ($([$fn:ident, $hour:ident]),*) => {
         $(
             pub fn $fn(&mut self) -> ReaderResult<Grib2ValueIter<'_>> {
-                self.forecast_value_iter(ForecastHour::$hour)
+                self.forecast_value_iter(ForecastHour6::$hour)
             }
         )*
     }
@@ -92,12 +70,12 @@ where
         let section1 = Section1::from_reader(&mut reader)?;
         let section2 = Section2::from_reader(&mut reader)?;
         let section3 = Section3_0::from_reader(&mut reader)?;
-        let hour1 = srpf_forecast_from_reader(&mut reader)?;
-        let hour2 = srpf_forecast_from_reader(&mut reader)?;
-        let hour3 = srpf_forecast_from_reader(&mut reader)?;
-        let hour4 = srpf_forecast_from_reader(&mut reader)?;
-        let hour5 = srpf_forecast_from_reader(&mut reader)?;
-        let hour6 = srpf_forecast_from_reader(&mut reader)?;
+        let hour1 = SrpfSections::from_reader(&mut reader)?;
+        let hour2 = SrpfSections::from_reader(&mut reader)?;
+        let hour3 = SrpfSections::from_reader(&mut reader)?;
+        let hour4 = SrpfSections::from_reader(&mut reader)?;
+        let hour5 = SrpfSections::from_reader(&mut reader)?;
+        let hour6 = SrpfSections::from_reader(&mut reader)?;
         let section8 = Section8::from_reader(&mut reader)?;
 
         Ok(Self {
@@ -106,7 +84,7 @@ where
             section1,
             section2,
             section3,
-            forecast_sections: [hour1, hour2, hour3, hour4, hour5, hour6],
+            forecasts: [hour1, hour2, hour3, hour4, hour5, hour6],
             section8,
         })
     }
@@ -148,14 +126,9 @@ where
     }
 
     // 時間別の降水短時間予報を返す。
-    impl_forecast_hours!(
-        [hour1, Hour1],
-        [hour2, Hour2],
-        [hour3, Hour3],
-        [hour4, Hour4],
-        [hour5, Hour5],
-        [hour6, Hour6]
-    );
+    pub fn forecast(&self, hour: ForecastHour6) -> &SrpfSections {
+        &self.forecasts[hour as usize - 1]
+    }
 
     /// 第8節:気象要素値節を返す。
     ///
@@ -166,8 +139,9 @@ where
         &self.section8
     }
 
-    pub fn forecast_value_iter(&mut self, hour: ForecastHour) -> ReaderResult<Grib2ValueIter<'_>> {
-        let forecast = &self.forecast_sections[hour as usize - 1];
+    /// 時間別の降水短時間予想値を返すイテレーターを返す。
+    pub fn forecast_value_iter(&mut self, hour: ForecastHour6) -> ReaderResult<Grib2ValueIter<'_>> {
+        let forecast = &self.forecasts[hour as usize - 1];
         let file = File::open(self.path.as_ref())
             .map_err(|e| ReaderError::NotFount(e.to_string().into()))?;
         let mut reader = FileReader::new(file);
@@ -194,14 +168,14 @@ where
         ))
     }
 
-    // 時間別の降水短時間予測値を返すイテレーターを返すメソッド
+    // 時間別の降水短時間予想値を返すイテレーターを返すメソッド
     impl_forecast_values_iter!(
-        [forecast_hour1, Hour1],
-        [forecast_hour2, Hour2],
-        [forecast_hour3, Hour3],
-        [forecast_hour4, Hour4],
-        [forecast_hour5, Hour5],
-        [forecast_hour6, Hour6]
+        [forecast_hour1_value_iter, Hour1],
+        [forecast_hour2_value_iter, Hour2],
+        [forecast_hour3_value_iter, Hour3],
+        [forecast_hour4_value_iter, Hour4],
+        [forecast_hour5_value_iter, Hour5],
+        [forecast_hour6_value_iter, Hour6]
     );
 
     /// 全ての節を出力する。
@@ -219,7 +193,7 @@ where
         writeln!(writer)?;
         for i in 0..6usize {
             writeln!(writer, "{}時間後予想値:", i + 1)?;
-            self.forecast_sections[i].debug_info(writer)?;
+            self.forecasts[i].debug_info(writer)?;
         }
         self.section8.debug_info(writer)?;
         writeln!(writer)?;
@@ -228,21 +202,7 @@ where
     }
 }
 
-fn srpf_forecast_from_reader(reader: &mut FileReader) -> ReaderResult<SrpfForecast> {
-    let section4 = Section4_50009::from_reader(reader)?;
-    let section5 = Section5_200::from_reader(reader)?;
-    let section6 = Section6::from_reader(reader)?;
-    let section7 = Section7_200::from_reader(reader)?;
-
-    Ok(SrpfForecast {
-        section4,
-        section5,
-        section6,
-        section7,
-    })
-}
-
-impl SrpfForecast {
+impl SrpfSections {
     /// 第4節:格子点値節を返す。
     ///
     /// # 戻り値

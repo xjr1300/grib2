@@ -7,14 +7,14 @@ use grib2::reader::ArfReader;
 #[ignore]
 fn test_arf_reader() {
     // GRIB2ファイルを読み込みCSVファイルに座標を出力
-    let input = "../resources/analysis_rainfall.bin";
+    let input = "../resources/arf.bin";
     let mut reader = ArfReader::new(input).unwrap();
     let handle = stdout().lock();
     let mut writer = BufWriter::new(handle);
     reader.debug_info(&mut writer).unwrap();
     writer.flush().unwrap();
 
-    let output = "../resources/analysis_rainfall.csv";
+    let output = "../resources/arf.csv";
     let file = OpenOptions::new()
         .write(true)
         .create(true)
@@ -42,7 +42,7 @@ fn test_arf_reader() {
     println!("number of reading points: {}", number_of_points);
 
     // 検証
-    let expected = "../resources/analysis_rainfall.org.csv";
+    let expected = "../resources/arf.org.csv";
     let mut o_reader = BufReader::new(File::open(output).unwrap());
     let e_reader = BufReader::new(File::open(expected).unwrap());
     for e_line in e_reader.lines() {
