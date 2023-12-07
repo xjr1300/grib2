@@ -5,7 +5,10 @@ use std::path::Path;
 use super::sections::{
     FromReader, Section0, Section1, Section2, Section3_0, Section8, SwiSections,
 };
-use super::{FileReader, ForecastHour6, Grib2ValueIter, ReaderError, ReaderResult, SwiTank};
+use super::{
+    vec_to_fixed_array, FileReader, ForecastHour6, Grib2ValueIter, ReaderError, ReaderResult,
+    SwiTank,
+};
 
 /// 土壌雨量指数6時間予想値(1km メッシュ)リーダー
 /// Soil Water Index 6-hour forecast (1km mesh) reader
@@ -18,7 +21,7 @@ where
     section1: Section1,
     section2: Section2,
     section3: Section3_0,
-    forecasts: Vec<Forecast>,
+    forecasts: [Forecast; 6],
     section8: Section8,
 }
 
@@ -83,6 +86,7 @@ where
         for _ in 0..6 {
             forecasts.push(Forecast::from_reader(&mut reader)?);
         }
+        let forecasts = vec_to_fixed_array(forecasts)?;
         let section8 = Section8::from_reader(&mut reader)?;
 
         Ok(Self {
