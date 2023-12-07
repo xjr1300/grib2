@@ -523,7 +523,7 @@ pub struct Section5<T> {
 /// テンプレート5.200
 #[derive(Debug, Clone, TemplateGetter, TemplateDebugInfo)]
 #[template_getter(section = "Section5", member = "template5")]
-pub struct Template5_200 {
+pub struct Template5_200u16 {
     #[getter(ret = "val")]
     #[debug_info(name = "今回の圧縮に用いたレベルの最大値")]
     max_level_value: u16,
@@ -543,6 +543,31 @@ pub struct Template5_200 {
         fmt = "{}"
     )]
     level_values: Vec<u16>,
+}
+
+/// テンプレート5.200
+#[derive(Debug, Clone, TemplateGetter, TemplateDebugInfo)]
+#[template_getter(section = "Section5", member = "template5")]
+pub struct Template5_200i16 {
+    #[getter(ret = "val")]
+    #[debug_info(name = "今回の圧縮に用いたレベルの最大値")]
+    max_level_value: u16,
+    #[getter(ret = "val")]
+    #[debug_info(name = "データの取り得るレベルの最大値")]
+    number_of_level_values: u16,
+    #[getter(ret = "val")]
+    #[debug_info(name = "データ代表値の尺度因子")]
+    decimal_scale_factor: u8,
+    /// レベル値と物理値(mm/h)の対応を格納するコレクション
+    #[getter(ret = "ref", rty = "&[i16]")]
+    #[debug_info(
+        name = "レベルmに対応するデータ代表値",
+        data_type = "serial",
+        header = "レベル{}",
+        start = 1,
+        fmt = "{}"
+    )]
+    level_values: Vec<i16>,
 }
 
 #[derive(Debug, Clone, Copy, Getter, SectionDebugInfo)]
@@ -1250,7 +1275,7 @@ where
     }
 }
 
-impl TemplateFromReaderWithSize<u16> for Template5_200 {
+impl TemplateFromReaderWithSize<u16> for Template5_200u16 {
     fn from_reader(
         reader: &mut FileReader,
         template_number: u16,
@@ -1273,6 +1298,40 @@ impl TemplateFromReaderWithSize<u16> for Template5_200 {
         let mut level_values = Vec::new();
         for _ in 0..number_of_levels {
             level_values.push(read_u16(reader, "第5節:レベルmに対応するデータ代表値")?);
+        }
+
+        Ok(Self {
+            max_level_value,
+            number_of_level_values,
+            decimal_scale_factor,
+            level_values,
+        })
+    }
+}
+
+impl TemplateFromReaderWithSize<u16> for Template5_200i16 {
+    fn from_reader(
+        reader: &mut FileReader,
+        template_number: u16,
+        template_bytes: usize,
+    ) -> ReaderResult<Self> {
+        // 資料表現テンプレート番号を確認
+        validate_template_number!(
+            "第5節:資料表現テンプレート番号",
+            template_number,
+            RUN_LENGTH_DATA_REPRESENTATION_TEMPLATE_NUMBER
+        );
+        // 今回の圧縮に用いたレベルの最大値: 2バイト
+        let max_level_value = read_u16(reader, "第5節:今回の圧縮に用いたレベルの最大値")?;
+        // データの取り得るレベルの最大値: 2バイト
+        let number_of_level_values = read_u16(reader, "第5節:レベルの最大値")?;
+        // データ代表値の尺度因子: 1バイト
+        let decimal_scale_factor = read_u8(reader, "第5節:データ代表値の尺度因子")?;
+        // レベルmに対応するデータ代表値
+        let number_of_levels = (template_bytes - (2 + 2 + 1)) / 2;
+        let mut level_values = Vec::new();
+        for _ in 0..number_of_levels {
+            level_values.push(read_i16(reader, "第5節:レベルmに対応するデータ代表値")?);
         }
 
         Ok(Self {
@@ -1360,7 +1419,7 @@ impl TemplateFromReaderWithSize<u16> for Template7_200 {
 /// 土壌雨量指数の第4節から第7節
 pub struct SwiSections {
     section4: Section4_0,
-    section5: Section5_200,
+    section5: Section5_200u16,
     section6: Section6,
     section7: Section7_200,
 }
@@ -1368,7 +1427,7 @@ pub struct SwiSections {
 impl SwiSections {
     pub(crate) fn from_reader(reader: &mut FileReader) -> ReaderResult<SwiSections> {
         let section4 = Section4_0::from_reader(reader)?;
-        let section5 = Section5_200::from_reader(reader)?;
+        let section5 = Section5_200u16::from_reader(reader)?;
         let section6 = Section6::from_reader(reader)?;
         let section7 = Section7_200::from_reader(reader)?;
 
@@ -1394,7 +1453,7 @@ impl SwiSections {
     /// # 戻り値
     ///
     /// 第5節:資料表現節
-    pub fn section5(&self) -> &Section5_200 {
+    pub fn section5(&self) -> &Section5_200u16 {
         &self.section5
     }
 
@@ -1484,8 +1543,8 @@ fn validate_str(
     Ok(value)
 }
 
-/// 数値を読み込む関数を生成するマクロ
-macro_rules! read_number {
+/// 符号なし整数を読み込む関数を生成するマクロ
+macro_rules! impl_read_unsigned_int {
     ($fname:ident, $type:ty) => {
         fn $fname(reader: &mut FileReader, name: &str) -> ReaderResult<$type> {
             let expected_bytes = std::mem::size_of::<$type>();
@@ -1499,24 +1558,43 @@ macro_rules! read_number {
     };
 }
 
-read_number!(read_u8, u8);
-read_number!(read_u16, u16);
-read_number!(read_u32, u32);
-read_number!(read_u64, u64);
+impl_read_unsigned_int!(read_u8, u8);
+impl_read_unsigned_int!(read_u16, u16);
+impl_read_unsigned_int!(read_u32, u32);
+impl_read_unsigned_int!(read_u64, u64);
 
-fn read_i32(reader: &mut FileReader, name: &str) -> ReaderResult<i32> {
-    let expected_bytes = std::mem::size_of::<i32>();
-    let mut buf = vec![0_u8; expected_bytes];
-    reader.read_exact(&mut buf).map_err(|_| {
-        ReaderError::ReadError(format!("{}の読み込みに失敗しました。", name).into())
-    })?;
-    // 最上位ビットを確認(0であれば正の数、1であれば負の数)
-    let sign = if buf[0] & 0x80 == 0 { 1 } else { -1 };
-    // 最上位ビットを0にした結果をデコード
-    buf[0] &= 0x7F;
+/// 符号あり整数を読み込む関数を生成するマクロ
+macro_rules! impl_read_signed_int {
+    ($fname:ident, $type:ty) => {
+        fn $fname(reader: &mut FileReader, name: &str) -> ReaderResult<$type> {
+            let expected_bytes = std::mem::size_of::<$type>();
+            let mut buf = vec![0_u8; expected_bytes];
+            reader.read_exact(&mut buf).map_err(|_| {
+                ReaderError::ReadError(format!("{}の読み込みに失敗しました。", name).into())
+            })?;
+            let sign = if buf[0] & 0x80 == 0 { 1 } else { -1 };
+            buf[0] &= 0x7F;
 
-    Ok(<i32>::from_be_bytes(buf.try_into().unwrap()) * sign)
+            Ok(<$type>::from_be_bytes(buf.try_into().unwrap()) * sign)
+        }
+    };
 }
+
+impl_read_signed_int!(read_i16, i16);
+impl_read_signed_int!(read_i32, i32);
+//fn read_i32(reader: &mut FileReader, name: &str) -> ReaderResult<i32> {
+//    let expected_bytes = std::mem::size_of::<i32>();
+//    let mut buf = vec![0_u8; expected_bytes];
+//    reader.read_exact(&mut buf).map_err(|_| {
+//        ReaderError::ReadError(format!("{}の読み込みに失敗しました。", name).into())
+//    })?;
+//    // 最上位ビットを確認(0であれば正の数、1であれば負の数)
+//    let sign = if buf[0] & 0x80 == 0 { 1 } else { -1 };
+//    // 最上位ビットを0にした結果をデコード
+//    buf[0] &= 0x7F;
+//
+//    Ok(<i32>::from_be_bytes(buf.try_into().unwrap()) * sign)
+//}
 
 /// 数値を読み込み検証する関数を生成するマクロ
 macro_rules! validate_number {
@@ -1660,5 +1738,6 @@ pub type Section4_0 = Section4<Template4_0>;
 pub type Section4_50000 = Section4<Template4_50000>;
 pub type Section4_50008 = Section4<Template4_50008>;
 pub type Section4_50009 = Section4<Template4_50009>;
-pub type Section5_200 = Section5<Template5_200>;
+pub type Section5_200u16 = Section5<Template5_200u16>;
+pub type Section5_200i16 = Section5<Template5_200i16>;
 pub type Section7_200 = Section7<Template7_200>;

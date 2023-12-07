@@ -4,8 +4,8 @@ use std::{fs::File, path::Path};
 use num_format::{Locale, ToFormattedString};
 
 use super::sections::{
-    FromReader, Section0, Section1, Section2, Section3_0, Section4_50000, Section5_200, Section6,
-    Section7_200, Section8,
+    FromReader, Section0, Section1, Section2, Section3_0, Section4_50000, Section5_200i16,
+    Section6, Section7_200, Section8,
 };
 use super::{FileReader, Grib2ValueIter, ReaderError, ReaderResult};
 
@@ -22,7 +22,7 @@ where
     section2: Section2,
     section3: Section3_0,
     section4: Section4_50000,
-    section5: Section5_200,
+    section5: Section5_200i16,
     section6: Section6,
     section7: Section7_200,
     section8: Section8,
@@ -50,7 +50,7 @@ where
         let section2 = Section2::from_reader(&mut reader)?;
         let section3 = Section3_0::from_reader(&mut reader)?;
         let section4 = Section4_50000::from_reader(&mut reader)?;
-        let section5 = Section5_200::from_reader(&mut reader)?;
+        let section5 = Section5_200i16::from_reader(&mut reader)?;
         let section6 = Section6::from_reader(&mut reader)?;
         let section7 = Section7_200::from_reader(&mut reader)?;
         let section8 = Section8::from_reader(&mut reader)?;
@@ -129,7 +129,7 @@ where
     /// # 戻り値
     ///
     /// 第5節:資料表現節
-    pub fn section5(&self) -> &Section5_200 {
+    pub fn section5(&self) -> &Section5_200i16 {
         &self.section5
     }
 
@@ -165,7 +165,7 @@ where
     /// # 戻り値
     ///
     /// ランレングス圧縮符号を走査するイテレーター
-    pub fn values(&mut self) -> ReaderResult<Grib2ValueIter<'_>> {
+    pub fn values(&mut self) -> ReaderResult<Grib2ValueIter<'_, i16>> {
         let file = File::open(self.path.as_ref())
             .map_err(|e| ReaderError::NotFount(e.to_string().into()))?;
         let mut reader = FileReader::new(file);

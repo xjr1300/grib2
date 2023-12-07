@@ -3,8 +3,8 @@ use std::io::{Seek, SeekFrom};
 use std::path::Path;
 
 use super::sections::{
-    FromReader, Section0, Section1, Section2, Section3_0, Section4_50009, Section5_200, Section6,
-    Section7_200, Section8,
+    FromReader, Section0, Section1, Section2, Section3_0, Section4_50009, Section5_200u16,
+    Section6, Section7_200, Section8,
 };
 use super::{FileReader, ForecastHour6, Grib2ValueIter, ReaderError, ReaderResult};
 
@@ -26,7 +26,7 @@ where
 
 pub struct SrpfSections {
     section4: Section4_50009,
-    section5: Section5_200,
+    section5: Section5_200u16,
     section6: Section6,
     section7: Section7_200,
 }
@@ -34,7 +34,7 @@ pub struct SrpfSections {
 impl SrpfSections {
     fn from_reader(reader: &mut FileReader) -> ReaderResult<Self> {
         let section4 = Section4_50009::from_reader(reader)?;
-        let section5 = Section5_200::from_reader(reader)?;
+        let section5 = Section5_200u16::from_reader(reader)?;
         let section6 = Section6::from_reader(reader)?;
         let section7 = Section7_200::from_reader(reader)?;
 
@@ -51,7 +51,7 @@ impl SrpfSections {
 macro_rules! impl_forecast_values_iter {
     ($([$fn:ident, $hour:ident]),*) => {
         $(
-            pub fn $fn(&mut self) -> ReaderResult<Grib2ValueIter<'_>> {
+            pub fn $fn(&mut self) -> ReaderResult<Grib2ValueIter<'_, u16>> {
                 self.forecast_value_iter(ForecastHour6::$hour)
             }
         )*
@@ -140,7 +140,10 @@ where
     }
 
     /// 時間別の降水短時間予想値を返すイテレーターを返す。
-    pub fn forecast_value_iter(&mut self, hour: ForecastHour6) -> ReaderResult<Grib2ValueIter<'_>> {
+    pub fn forecast_value_iter(
+        &mut self,
+        hour: ForecastHour6,
+    ) -> ReaderResult<Grib2ValueIter<'_, u16>> {
         let forecast = &self.forecasts[hour as usize - 1];
         let file = File::open(self.path.as_ref())
             .map_err(|e| ReaderError::NotFount(e.to_string().into()))?;
@@ -217,7 +220,7 @@ impl SrpfSections {
     /// # 戻り値
     ///
     /// 第5節:気象要素値節
-    pub fn section5(&self) -> &Section5_200 {
+    pub fn section5(&self) -> &Section5_200u16 {
         &self.section5
     }
 

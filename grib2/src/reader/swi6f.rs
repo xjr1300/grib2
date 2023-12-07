@@ -155,7 +155,7 @@ where
         &mut self,
         hour: ForecastHour6,
         tank: SwiTank,
-    ) -> ReaderResult<Grib2ValueIter<'_>> {
+    ) -> ReaderResult<Grib2ValueIter<'_, u16>> {
         let forecast = self.forecast(hour);
         let tank = forecast.tank(tank);
         let file = File::open(self.path.as_ref())

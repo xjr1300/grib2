@@ -134,7 +134,7 @@ where
         &self.section8
     }
 
-    fn value_iter(&mut self, tank: SwiTank) -> ReaderResult<Grib2ValueIter<'_>> {
+    fn value_iter(&mut self, tank: SwiTank) -> ReaderResult<Grib2ValueIter<'_, u16>> {
         let value_sections = &self.tanks[tank as usize];
         let file = File::open(self.path.as_ref())
             .map_err(|e| ReaderError::NotFount(e.to_string().into()))?;
@@ -167,7 +167,7 @@ where
     /// # 戻り値
     ///
     /// 土壌雨量指数を返すイテレーター
-    pub fn swi_value_iter(&mut self) -> ReaderResult<Grib2ValueIter<'_>> {
+    pub fn swi_value_iter(&mut self) -> ReaderResult<Grib2ValueIter<'_, u16>> {
         self.value_iter(SwiTank::Swi)
     }
 
@@ -176,7 +176,7 @@ where
     /// # 戻り値
     ///
     /// 第一タンクの値を返すイテレーター
-    pub fn first_tank_value_iter(&mut self) -> ReaderResult<Grib2ValueIter<'_>> {
+    pub fn first_tank_value_iter(&mut self) -> ReaderResult<Grib2ValueIter<'_, u16>> {
         self.value_iter(SwiTank::First)
     }
 
@@ -185,7 +185,7 @@ where
     /// # 戻り値
     ///
     /// 第二タンクの値を返すイテレーター
-    pub fn second_tank_value_iter(&mut self) -> ReaderResult<Grib2ValueIter<'_>> {
+    pub fn second_tank_value_iter(&mut self) -> ReaderResult<Grib2ValueIter<'_, u16>> {
         self.value_iter(SwiTank::Second)
     }
 

@@ -37,7 +37,7 @@ fn test_swi6f_reader() {
 
 fn write_values(
     writer: &mut BufWriter<File>,
-    value_iter: Grib2ValueIter<'_>,
+    value_iter: Grib2ValueIter<'_, u16>,
     number_of_points: u32,
 ) {
     let mut number_of_reads = 0_u32;
