@@ -1,14 +1,13 @@
 use std::fs::{File, OpenOptions};
 use std::io::{stdout, BufWriter, Write};
 
-use grib2::reader::ForecastHour6;
-use grib2::reader::{Grib2ValueIter, SrpfReader};
+use grib2::reader::{ForecastHour6, Grib2ValueIter, SrpfReader};
 
 #[test]
 #[ignore]
 fn test_srpf_reader() {
     // GRIB2ファイルを読み込みCSVファイルに座標を出力
-    let input = "../resources/short_range_precipitation_forecast.bin";
+    let input = "../resources/srpf.bin";
     let mut reader = SrpfReader::new(input).unwrap();
     let handle = stdout().lock();
     let mut writer = BufWriter::new(handle);
@@ -18,10 +17,7 @@ fn test_srpf_reader() {
 
     // 予測値をファイルに出力
     for i in 0..6 {
-        let output = format!(
-            "../resources/short_range_precipitation_forecast_{}hours.csv",
-            i + 1
-        );
+        let output = format!("../resources/srpf_{}hours.csv", i + 1);
         let file = OpenOptions::new()
             .write(true)
             .create(true)

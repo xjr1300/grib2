@@ -51,6 +51,7 @@ impl Forecast {
             let tank: SwiTank = (i as u8).try_into().unwrap();
             writeln!(writer, "{}:", tank)?;
             self.tank(tank).debug_info(writer)?;
+            writeln!(writer)?;
         }
 
         Ok(())
