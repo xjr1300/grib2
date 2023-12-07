@@ -42,7 +42,7 @@ fn test_arf_reader() {
     println!("number of reading points: {}", number_of_points);
 
     // 検証
-    let expected = "../resources/arf.org.csv";
+    let expected = "../resources/arf.csv.org";
     let mut o_reader = BufReader::new(File::open(output).unwrap());
     let e_reader = BufReader::new(File::open(expected).unwrap());
     for e_line in e_reader.lines() {

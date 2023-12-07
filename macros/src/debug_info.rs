@@ -2,6 +2,7 @@ use proc_macro2::{Ident, Literal, TokenStream as TokenStream2};
 use quote::quote;
 use syn::{
     punctuated::Punctuated, Attribute, DeriveInput, Expr, Field, ImplGenerics, Lit, TypeGenerics,
+    WhereClause,
 };
 
 use crate::utils::{
@@ -11,7 +12,7 @@ use crate::utils::{
 
 pub(crate) fn derive_section_debug_info_impl(input: DeriveInput) -> syn::Result<TokenStream2> {
     // 構造体のジェネリックスを取得
-    let (impl_generics, ty_generics, _) = input.generics.split_for_impl();
+    let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
     // 構造体に付与されたsection属性を取得
     let section_attr = input
         .attrs
@@ -29,6 +30,7 @@ pub(crate) fn derive_section_debug_info_impl(input: DeriveInput) -> syn::Result<
             &input,
             impl_generics,
             ty_generics,
+            where_clause,
             section_number,
             section_name,
         )?,
@@ -60,6 +62,7 @@ fn derive_section_struct_impl(
     input: &DeriveInput,
     impl_generics: ImplGenerics<'_>,
     ty_generics: TypeGenerics<'_>,
+    where_clause: Option<&WhereClause>,
     section_number: Literal,
     section_name: Literal,
 ) -> syn::Result<TokenStream2> {
@@ -84,7 +87,7 @@ fn derive_section_struct_impl(
 
     let token_stream = if exists_debug_template {
         quote!(
-            impl #impl_generics #ident #ty_generics {
+            impl #impl_generics #ident #ty_generics #where_clause {
                 pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
                 where
                     T: DebugTemplate<W>,
