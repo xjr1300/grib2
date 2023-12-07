@@ -4,6 +4,7 @@ use std::io::BufReader;
 
 mod arf;
 mod aswi;
+mod lswj;
 mod sections;
 pub mod srpf;
 mod swi6f;
@@ -12,6 +13,7 @@ mod value_iter;
 
 pub use arf::ArfReader;
 pub use aswi::AswiReader;
+pub use lswj::LswjReader;
 pub use srpf::SrpfReader;
 pub use swi6f::Swi6fReader;
 pub use value::Grib2Value;

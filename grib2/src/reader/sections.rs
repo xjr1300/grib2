@@ -16,6 +16,7 @@ const LAT_LON_GRID_DEFINITION_TEMPLATE_NUMBER: u16 = 0; // 緯度・経度格子
 
 /// 第４節:プロダクト定義テンプレート番号
 const DEFAULT_PRODUCT_DEFINITION_TEMPLATE_NUMBER: u16 = 0; // デフォルト
+const PROCESSED_PRODUCT_DEFINITION_TEMPLATE_NUMBER: u16 = 50000; // 他のプロダクトを元に加工・処理されたプロダクト
 const RADAR_PRODUCT_DEFINITION_TEMPLATE_NUMBER: u16 = 50008; // レーダーなどに基づく解析プロダクト
 const RADAR_FORECAST_PRODUCT_DEFINITION_TEMPLATE_NUMBER: u16 = 50009; // レーダーなどに基づく予測プロダクト
 
@@ -239,6 +240,75 @@ pub struct Template4_0 {
     #[getter(ret = "val")]
     #[debug_info(name = "第二固定面の尺度付きの値")]
     scaled_value_of_second_fixed_surface: u32,
+}
+
+/// テンプレート4.50000
+#[derive(Debug, Clone, Copy, TemplateGetter, TemplateDebugInfo)]
+#[template_getter(section = "Section4", member = "template4")]
+pub struct Template4_50000 {
+    #[getter(ret = "val")]
+    #[debug_info(name = "パラメータカテゴリー")]
+    parameter_category: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "パラメータ番号")]
+    parameter_number: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "作成処理の種類")]
+    type_of_generating_process: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "背景作成処理識別符")]
+    background_process: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "解析又は予報の作成処理識別符")]
+    generating_process_identifier: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "観測資料の参照時刻からの締切時間（時）")]
+    hours_after_data_cutoff: u16,
+    #[getter(ret = "val")]
+    #[debug_info(name = "観測資料の参照時刻からの締切時間（分）")]
+    minutes_after_data_cutoff: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "期間の単位の指示符")]
+    indicator_of_unit_of_time_range: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "予報時間")]
+    forecast_time: i32,
+    #[getter(ret = "val")]
+    #[debug_info(name = "第一固定面の種類")]
+    type_of_first_fixed_surface: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "第一固定面の尺度因子")]
+    scale_factor_of_first_fixed_surface: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "第一固定面の尺度付きの値")]
+    scaled_value_of_first_fixed_surface: u32,
+    #[getter(ret = "val")]
+    #[debug_info(name = "第二固定面の種類")]
+    type_of_second_fixed_surface: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "第二固定面の尺度因子")]
+    scale_factor_of_second_fixed_surface: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "第二固定面の尺度付きの値")]
+    scaled_value_of_second_fixed_surface: u32,
+    #[getter(ret = "val")]
+    #[debug_info(name = "資料作成に用いた関連資料の名称1")]
+    source_document1: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "上記関連資料の解析時刻と参照時刻との差（時）1")]
+    hours_from_source_document1: u16,
+    #[getter(ret = "val")]
+    #[debug_info(name = "上記関連資料の解析時刻と参照時刻との差（分）1")]
+    minutes_from_source_document1: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "資料作成に用いた関連資料の名称2")]
+    source_document2: u8,
+    #[getter(ret = "val")]
+    #[debug_info(name = "上記関連資料の解析時刻と参照時刻との差（時）2")]
+    hours_from_source_document2: u16,
+    #[getter(ret = "val")]
+    #[debug_info(name = "上記関連資料の解析時刻と参照時刻との差（分）2")]
+    minutes_from_source_document2: u8,
 }
 
 /// テンプレート4.50008
@@ -835,6 +905,91 @@ impl TemplateFromReader<u16> for Template4_0 {
             type_of_second_fixed_surface,
             scale_factor_of_second_fixed_surface,
             scaled_value_of_second_fixed_surface,
+        })
+    }
+}
+
+impl TemplateFromReader<u16> for Template4_50000 {
+    fn from_reader(reader: &mut FileReader, template_number: u16) -> ReaderResult<Self> {
+        // プロダクト定義テンプレート番号を確認
+        validate_template_number!(
+            "第4節:プロダクト定義テンプレート番号",
+            template_number,
+            PROCESSED_PRODUCT_DEFINITION_TEMPLATE_NUMBER
+        );
+        // パラメータカテゴリー: 1バイト
+        let parameter_category = read_u8(reader, "第4節:パラメータカテゴリー")?;
+        // パラメータ番号: 1バイト
+        let parameter_number = read_u8(reader, "第4節:パラメータ番号")?;
+        // 作成処理の種類: 1バイト
+        let type_of_generating_process = read_u8(reader, "第4節:作成処理の種類")?;
+        // 背景作成処理識別符: 1バイト
+        let background_process = read_u8(reader, "第4節:背景作成処理識別符")?;
+        // 解析又は予報の作成処理識別符: 1バイト
+        let generating_process_identifier = read_u8(reader, "第4節:解析又は予報の作成処理識別符")?;
+        // 観測資料の参照時刻からの締切時間（時）: 2バイト
+        let hours_after_data_cutoff =
+            read_u16(reader, "第4節:観測資料の参照時刻からの締切時間（時）")?;
+        // 観測資料の参照時刻からの締切時間（分）: 1バイト
+        let minutes_after_data_cutoff =
+            read_u8(reader, "第4節:観測資料の参照時刻からの締切時間（分）")?;
+        // 期間の単位の指示符: 1バイト
+        let indicator_of_unit_of_time_range = read_u8(reader, "第4節:期間の単位の指示符")?;
+        // 予報時間: 4バイト
+        let forecast_time = read_i32(reader, "第4節:予報時間")?;
+        // 第一固定面の種類: 1バイト
+        let type_of_first_fixed_surface = read_u8(reader, "第4節:第一固定面の種類")?;
+        // 第一固定面の尺度因子: 1バイト
+        let scale_factor_of_first_fixed_surface = read_u8(reader, "第4節:第一固定面の尺度因子")?;
+        // 第一固定面の尺度付きの値: 4バイト
+        let scaled_value_of_first_fixed_surface =
+            read_u32(reader, "第4節:第一固定面の尺度付きの値")?;
+        // 第二固定面の種類: 1バイト
+        let type_of_second_fixed_surface = read_u8(reader, "第4節:第二固定面の種類")?;
+        // 第二固定面の尺度因子: 1バイト
+        let scale_factor_of_second_fixed_surface = read_u8(reader, "第4節:第二固定面の尺度因子")?;
+        // 第二固定面の尺度付きの値: 4バイト
+        let scaled_value_of_second_fixed_surface =
+            read_u32(reader, "第4節:第二固定面の尺度付きの値")?;
+        // 資料作成に用いた関連資料の名称1: 1バイト
+        let source_document1 = read_u8(reader, "第4節:資料作成に用いた関連資料の名称1")?;
+        // 上記関連資料の解析時刻と参照時刻との差（時）1: 2バイト
+        let hours_from_source_document1 =
+            read_u16(reader, "第4節:記関連資料の解析時刻と参照時刻との差（時）1")?;
+        // 上記関連資料の解析時刻と参照時刻との差（分）1: 1バイト
+        let minutes_from_source_document1 =
+            read_u8(reader, "第4節:記関連資料の解析時刻と参照時刻との差（分）1")?;
+        // 資料作成に用いた関連資料の名称2: 1バイト
+        let source_document2 = read_u8(reader, "第4節:資料作成に用いた関連資料の名称2")?;
+        // 上記関連資料の解析時刻と参照時刻との差（時）2: 2バイト
+        let hours_from_source_document2 =
+            read_u16(reader, "第4節:記関連資料の解析時刻と参照時刻との差（時）2")?;
+        // 上記関連資料の解析時刻と参照時刻との差（分）2: 1バイト
+        let minutes_from_source_document2 =
+            read_u8(reader, "第4節:記関連資料の解析時刻と参照時刻との差（分）2")?;
+
+        Ok(Self {
+            parameter_category,
+            parameter_number,
+            type_of_generating_process,
+            background_process,
+            generating_process_identifier,
+            hours_after_data_cutoff,
+            minutes_after_data_cutoff,
+            indicator_of_unit_of_time_range,
+            forecast_time,
+            type_of_first_fixed_surface,
+            scale_factor_of_first_fixed_surface,
+            scaled_value_of_first_fixed_surface,
+            type_of_second_fixed_surface,
+            scale_factor_of_second_fixed_surface,
+            scaled_value_of_second_fixed_surface,
+            source_document1,
+            hours_from_source_document1,
+            minutes_from_source_document1,
+            source_document2,
+            hours_from_source_document2,
+            minutes_from_source_document2,
         })
     }
 }
@@ -1502,6 +1657,7 @@ pub trait DebugTemplate<W> {
 
 pub type Section3_0 = Section3<Template3_0>;
 pub type Section4_0 = Section4<Template4_0>;
+pub type Section4_50000 = Section4<Template4_50000>;
 pub type Section4_50008 = Section4<Template4_50008>;
 pub type Section4_50009 = Section4<Template4_50009>;
 pub type Section5_200 = Section5<Template5_200>;
