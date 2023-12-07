@@ -5,7 +5,7 @@ use num_format::{Locale, ToFormattedString};
 use super::value::Grib2Value;
 use super::{FileReader, ReaderError, ReaderResult};
 
-pub struct Grib2ValueIter<'a> {
+pub struct Grib2ValueIter<'a, V> {
     /// ファイルリーダー
     reader: FileReader,
     /// GRIB2ファイルに記録されている座標数
@@ -25,7 +25,7 @@ pub struct Grib2ValueIter<'a> {
     /// LNGU進数
     lngu: u16,
     /// レベル別物理値
-    level_values: &'a [u16],
+    level_values: &'a [V],
     /// ランレングス圧縮符号を読み込んだバイト数
     read_bytes: usize,
     /// 現在の緯度（10e-6度単位）
@@ -35,7 +35,7 @@ pub struct Grib2ValueIter<'a> {
     /// 現在のレベル値
     current_level: u16,
     /// 現在の物理値
-    current_value: Option<u16>,
+    current_value: Option<V>,
     /// 現在値を返却する回数
     returning_times: u32,
     /// 読み込んだ座標数
@@ -44,7 +44,7 @@ pub struct Grib2ValueIter<'a> {
     last_run_length: Option<u16>,
 }
 
-impl<'a> Grib2ValueIter<'a> {
+impl<'a, V> Grib2ValueIter<'a, V> {
     /// GRIB2値のイテレータを構築する。
     ///
     /// 引数`reader`のファイルポインタは、第7節ランレングス圧縮符号列の開始位置にあることを想定している。
@@ -78,7 +78,7 @@ impl<'a> Grib2ValueIter<'a> {
         lon_inc: u32,
         nbit: u16,
         maxv: u16,
-        level_values: &'a [u16],
+        level_values: &'a [V],
     ) -> Self {
         Self {
             reader,
@@ -131,8 +131,11 @@ impl<'a> Grib2ValueIter<'a> {
     }
 }
 
-impl<'a> Iterator for Grib2ValueIter<'a> {
-    type Item = ReaderResult<Grib2Value>;
+impl<'a, V> Iterator for Grib2ValueIter<'a, V>
+where
+    V: Copy,
+{
+    type Item = ReaderResult<Grib2Value<V>>;
 
     fn next(&mut self) -> Option<Self::Item> {
         // 現在値返却回数が0かつ、読み込んだバイト数がランレングス圧縮符号列を記録しているバイト数に達している場合は終了
