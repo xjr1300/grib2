@@ -752,7 +752,7 @@ where
         // 格子系定義テンプレート番号: 2バイト
         let grid_definition_template_number = read_u16(reader, "第3節:格子系定義テンプレート番号")?;
         // テンプレート3
-        let template = T::from_reader(reader, grid_definition_template_number)?;
+        let template3 = T::from_reader(reader, grid_definition_template_number)?;
 
         Ok(Self {
             section_bytes,
@@ -761,7 +761,7 @@ where
             number_of_octets_for_number_of_points,
             interpretation_of_number_of_points,
             grid_definition_template_number,
-            template3: template,
+            template3,
         })
     }
 }
