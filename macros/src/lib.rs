@@ -6,7 +6,7 @@ mod getter;
 mod utils;
 
 use debug_info::{derive_section_debug_info_impl, derive_template_debug_info_impl};
-use getter::{derive_getter_impl, derive_template_getter_impl};
+use getter::derive_getter_impl;
 
 /// ゲッター導出マクロ
 ///
@@ -42,52 +42,6 @@ pub fn derive_getter(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
     match derive_getter_impl(input) {
-        Ok(token_stream) => TokenStream::from(token_stream),
-        Err(err) => TokenStream::from(err.into_compile_error()),
-    }
-}
-
-/// テンプレートゲッター導出マクロ
-///
-/// ```text
-/// pub struct Section2<T2> {
-///     template2: T2,
-/// }
-///
-/// #[derive(TemplateGetter)]
-/// #[template_getter(section="Section2", member="template2"))]
-/// pub struct Template2 {
-///     #[getter(ret="val")]
-///     a: i32,
-///     #[getter(ret="ref")]
-///     b: PathBuf,
-///     #[getter(ret="ref", ty="&str")]
-///     c: String,
-/// }
-/// ```
-///
-/// 上記構造体から次を導出する。
-///
-/// ```text
-/// impl Section2<Template2> {
-///     pub fn a(&self) -> i32 {
-///         self.template2.a
-///     }
-///
-///     pub fn b(&self) -> &PathBuf {
-///         &self.template2.b
-///     }
-///
-///     pub fn c(&self) -> &str {
-///         &self.template2.c
-///     }
-/// }
-/// ```
-#[proc_macro_derive(TemplateGetter, attributes(template_getter, getter))]
-pub fn derive_template_getter(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as DeriveInput);
-
-    match derive_template_getter_impl(input) {
         Ok(token_stream) => TokenStream::from(token_stream),
         Err(err) => TokenStream::from(err.into_compile_error()),
     }
