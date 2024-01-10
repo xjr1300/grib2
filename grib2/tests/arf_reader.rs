@@ -51,14 +51,14 @@ fn test_arf_reader() {
         match o_bytes {
             Ok(0) => {
                 // 出力したファイルの行数が、予期したファイルの行数より少ない
-                assert!(false, "the output file is shorter than the expected file");
+                panic!("the output file is shorter than the expected file");
             }
             Ok(_) => {
                 // 出力したファイルの行が、予期したファイルの行と一致するか確認
                 assert_eq!(e_line.unwrap(), o_line.trim_end());
             }
             Err(_) => {
-                assert!(false, "unexpected error raised");
+                panic!("unexpected error raised");
             }
         }
     }
@@ -70,10 +70,10 @@ fn test_arf_reader() {
         }
         Ok(_) => {
             // 出力したファイルの行数が、予期したファイルの行数より多い
-            assert!(false, "the output file is longer than the expected file");
+            panic!("the output file is longer than the expected file");
         }
         Err(_) => {
-            assert!(false, "unexpected error raised");
+            panic!("unexpected error raised");
         }
     }
 

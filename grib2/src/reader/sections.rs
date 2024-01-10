@@ -3,7 +3,7 @@ use std::io::{Read, Seek};
 use time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time};
 
 use super::{FileReader, ReaderError, ReaderResult};
-use macros::{Getter, SectionDebugInfo, TemplateDebugInfo, TemplateGetter};
+use macros::{Getter, SectionDebugInfo, TemplateDebugInfo};
 
 /// 第0節:GRIB版番号
 const EDITION_NUMBER: u8 = 2;
@@ -112,8 +112,7 @@ pub struct Section3<T> {
 }
 
 /// テンプレート3.0
-#[derive(Debug, Clone, Copy, TemplateGetter, TemplateDebugInfo)]
-#[template_getter(section = "Section3", member = "template3")]
+#[derive(Debug, Clone, Copy, Getter, TemplateDebugInfo)]
 pub struct Template3_0 {
     #[getter(ret = "val")]
     #[debug_info(name = "地球の形状")]
@@ -192,8 +191,7 @@ pub struct Section4<T> {
 }
 
 /// テンプレート4.0
-#[derive(Debug, Clone, Copy, TemplateGetter, TemplateDebugInfo)]
-#[template_getter(section = "Section4", member = "template4")]
+#[derive(Debug, Clone, Copy, Getter, TemplateDebugInfo)]
 pub struct Template4_0 {
     #[getter(ret = "val")]
     #[debug_info(name = "パラメータカテゴリー")]
@@ -243,8 +241,7 @@ pub struct Template4_0 {
 }
 
 /// テンプレート4.50000
-#[derive(Debug, Clone, Copy, TemplateGetter, TemplateDebugInfo)]
-#[template_getter(section = "Section4", member = "template4")]
+#[derive(Debug, Clone, Copy, Getter, TemplateDebugInfo)]
 pub struct Template4_50000 {
     #[getter(ret = "val")]
     #[debug_info(name = "パラメータカテゴリー")]
@@ -312,8 +309,7 @@ pub struct Template4_50000 {
 }
 
 /// テンプレート4.50008
-#[derive(Debug, Clone, Copy, TemplateGetter, TemplateDebugInfo)]
-#[template_getter(section = "Section4", member = "template4")]
+#[derive(Debug, Clone, Copy, Getter, TemplateDebugInfo)]
 pub struct Template4_50008 {
     #[getter(ret = "val")]
     #[debug_info(name = "パラメータカテゴリー")]
@@ -399,8 +395,7 @@ pub struct Template4_50008 {
 }
 
 /// テンプレート4.50009
-#[derive(Debug, Clone, TemplateGetter, TemplateDebugInfo)]
-#[template_getter(section = "Section4", member = "template4")]
+#[derive(Debug, Clone, Getter, TemplateDebugInfo)]
 pub struct Template4_50009 {
     #[getter(ret = "val")]
     #[debug_info(name = "パラメータカテゴリー")]
@@ -521,8 +516,7 @@ pub struct Section5<T> {
 }
 
 /// テンプレート5.200
-#[derive(Debug, Clone, TemplateGetter, TemplateDebugInfo)]
-#[template_getter(section = "Section5", member = "template5")]
+#[derive(Debug, Clone, Getter, TemplateDebugInfo)]
 pub struct Template5_200u16 {
     #[getter(ret = "val")]
     #[debug_info(name = "今回の圧縮に用いたレベルの最大値")]
@@ -546,8 +540,7 @@ pub struct Template5_200u16 {
 }
 
 /// テンプレート5.200
-#[derive(Debug, Clone, TemplateGetter, TemplateDebugInfo)]
-#[template_getter(section = "Section5", member = "template5")]
+#[derive(Debug, Clone, Getter, TemplateDebugInfo)]
 pub struct Template5_200i16 {
     #[getter(ret = "val")]
     #[debug_info(name = "今回の圧縮に用いたレベルの最大値")]
@@ -592,8 +585,7 @@ pub struct Section7<T> {
 }
 
 /// テンプレート7.200
-#[derive(Debug, Clone, Copy, TemplateGetter, TemplateDebugInfo)]
-#[template_getter(section = "Section7", member = "template7")]
+#[derive(Debug, Clone, Copy, Getter, TemplateDebugInfo)]
 pub struct Template7_200 {
     #[getter(ret = "val")]
     #[debug_info(name = "ランレングス圧縮符号列の開始位置", fmt = "0x{:08X}")]
@@ -1741,3 +1733,629 @@ pub type Section4_50009 = Section4<Template4_50009>;
 pub type Section5_200u16 = Section5<Template5_200u16>;
 pub type Section5_200i16 = Section5<Template5_200i16>;
 pub type Section7_200 = Section7<Template7_200>;
+
+impl Section3_0 {
+    /// 地球の形状を返す。
+    pub fn shape_of_earth(&self) -> u8 {
+        self.template3.shape_of_earth
+    }
+
+    /// 地球球体の半径の尺度因子を返す。
+    pub fn scale_factor_of_radius_of_spherical_earth(&self) -> u8 {
+        self.template3.scale_factor_of_radius_of_spherical_earth
+    }
+
+    /// 地球球体の尺度付き半径を返す。
+    pub fn scaled_value_of_radius_of_spherical_earth(&self) -> u32 {
+        self.template3.scaled_value_of_radius_of_spherical_earth
+    }
+
+    /// 地球回転楕円体の長軸の尺度因子を返す。
+    pub fn scale_factor_of_major_axis(&self) -> u8 {
+        self.template3.scale_factor_of_earth_major_axis
+    }
+
+    /// 地球回転楕円体の長軸の尺度付きの長さを返す。
+    pub fn scaled_value_of_earth_major_axis(&self) -> u32 {
+        self.template3.scaled_value_of_earth_major_axis
+    }
+
+    /// 地球回転楕円体の短軸の尺度因子を返す。
+    pub fn scale_factor_of_minor_axis(&self) -> u8 {
+        self.template3.scale_factor_of_earth_minor_axis
+    }
+
+    /// 地球回転楕円体の短軸の尺度付きの長さを返す。
+    pub fn scaled_value_of_earth_minor_axis(&self) -> u32 {
+        self.template3.scaled_value_of_earth_minor_axis
+    }
+
+    /// 緯線に沿った格子点数を返す。
+    pub fn number_of_along_lat_points(&self) -> u32 {
+        self.template3.number_of_along_lat_points
+    }
+
+    /// 経線に沿った格子点数を返す。
+    pub fn number_of_along_lon_points(&self) -> u32 {
+        self.template3.number_of_along_lon_points
+    }
+
+    /// 原作成領域の基本角を返す。
+    pub fn basic_angle_of_initial_product_domain(&self) -> u32 {
+        self.template3.basic_angle_of_initial_product_domain
+    }
+
+    /// 端点の経度及び緯度並びに方向増分の定義に使われる基本角の細分を返す。
+    pub fn subdivisions_of_basic_angle(&self) -> u32 {
+        self.template3.subdivisions_of_basic_angle
+    }
+
+    /// 最初の格子点の緯度（10e-6度単位）を返す。
+    pub fn lat_of_first_grid_point(&self) -> u32 {
+        self.template3.lat_of_first_grid_point
+    }
+
+    /// 最初の格子点の経度（10e-6度単位）を返す。
+    pub fn lon_of_first_grid_point(&self) -> u32 {
+        self.template3.lon_of_first_grid_point
+    }
+
+    /// 分解能及び成分フラグを返す。
+    pub fn resolution_and_component_flags(&self) -> u8 {
+        self.template3.resolution_and_component_flags
+    }
+
+    /// 最後の格子点の緯度（10e-6度単位）を返す。
+    pub fn lat_of_last_grid_point(&self) -> u32 {
+        self.template3.lat_of_last_grid_point
+    }
+
+    /// 最後の格子点の経度（10e-6度単位）を返す。
+    pub fn lon_of_last_grid_point(&self) -> u32 {
+        self.template3.lon_of_last_grid_point
+    }
+
+    /// i方向（経度方向）の増分（10e-6度単位）を返す。
+    pub fn i_direction_increment(&self) -> u32 {
+        self.template3.i_direction_increment
+    }
+
+    /// j方向（緯度方向）の増分（10e-6度単位）を返す。
+    pub fn j_direction_increment(&self) -> u32 {
+        self.template3.j_direction_increment
+    }
+
+    /// 走査モードを返す。
+    pub fn scanning_mode(&self) -> u8 {
+        self.template3.scanning_mode
+    }
+}
+
+impl Section4_0 {
+    /// パラメータカテゴリーを返す。
+    pub fn parameter_category(&self) -> u8 {
+        self.template4.parameter_category
+    }
+
+    /// パラメータ番号を返す。
+    pub fn parameter_number(&self) -> u8 {
+        self.template4.parameter_number
+    }
+
+    /// 作成処理の種類を返す。
+    pub fn type_of_generating_process(&self) -> u8 {
+        self.template4.type_of_generating_process
+    }
+
+    /// 背景作成処理識別符を返す。
+    pub fn background_process(&self) -> u8 {
+        self.template4.background_process
+    }
+
+    /// 予報の作成処理識別符を返す。
+    pub fn generating_process_identifier(&self) -> u8 {
+        self.template4.generating_process_identifier
+    }
+
+    /// 観測資料の参照時刻からの締切時間（時）を返す。
+    pub fn hours_after_data_cutoff(&self) -> u16 {
+        self.template4.hours_after_data_cutoff
+    }
+
+    /// 観測資料の参照時刻からの締切時間（分）を返す。
+    pub fn minutes_after_data_cutoff(&self) -> u8 {
+        self.template4.minutes_after_data_cutoff
+    }
+
+    /// 期間の単位の指示符を返す。
+    pub fn indicator_of_unit_of_time_range(&self) -> u8 {
+        self.template4.indicator_of_unit_of_time_range
+    }
+
+    /// 予報時間を返す。
+    pub fn forecast_time(&self) -> i32 {
+        self.template4.forecast_time
+    }
+
+    /// 第一固定面の種類を返す。
+    pub fn type_of_first_fixed_surface(&self) -> u8 {
+        self.template4.type_of_first_fixed_surface
+    }
+
+    /// 第一固定面の尺度因子を返す。
+    pub fn scale_factor_of_first_fixed_surface(&self) -> u8 {
+        self.template4.scale_factor_of_first_fixed_surface
+    }
+
+    /// 第一固定面の尺度付きの値を返す。
+    pub fn scaled_value_of_first_fixed_surface(&self) -> u32 {
+        self.template4.scaled_value_of_first_fixed_surface
+    }
+
+    /// 第二固定面の種類を返す。
+    pub fn type_of_second_fixed_surface(&self) -> u8 {
+        self.template4.type_of_second_fixed_surface
+    }
+
+    /// 第二固定面の尺度因子を返す。
+    pub fn scale_factor_of_second_fixed_surface(&self) -> u8 {
+        self.template4.scale_factor_of_second_fixed_surface
+    }
+
+    /// 第二固定面の尺度付きの値を返す。
+    pub fn scaled_value_of_second_fixed_surface(&self) -> u32 {
+        self.template4.scaled_value_of_second_fixed_surface
+    }
+}
+
+impl Section4_50000 {
+    /// パラメータカテゴリーを返す。
+    pub fn parameter_category(&self) -> u8 {
+        self.template4.parameter_category
+    }
+
+    /// パラメータ番号を返す。
+    pub fn parameter_number(&self) -> u8 {
+        self.template4.parameter_number
+    }
+
+    /// 作成処理の種類を返す。
+    pub fn type_of_generating_process(&self) -> u8 {
+        self.template4.type_of_generating_process
+    }
+
+    /// 背景作成処理識別符を返す。
+    pub fn background_process(&self) -> u8 {
+        self.template4.background_process
+    }
+
+    /// 予報の作成処理識別符を返す。
+    pub fn generating_process_identifier(&self) -> u8 {
+        self.template4.generating_process_identifier
+    }
+
+    /// 観測資料の参照時刻からの締切時間（時）を返す。
+    pub fn hours_after_data_cutoff(&self) -> u16 {
+        self.template4.hours_after_data_cutoff
+    }
+
+    /// 観測資料の参照時刻からの締切時間（分）を返す。
+    pub fn minutes_after_data_cutoff(&self) -> u8 {
+        self.template4.minutes_after_data_cutoff
+    }
+
+    /// 期間の単位の指示符を返す。
+    pub fn indicator_of_unit_of_time_range(&self) -> u8 {
+        self.template4.indicator_of_unit_of_time_range
+    }
+
+    /// 予報時間を返す。
+    pub fn forecast_time(&self) -> i32 {
+        self.template4.forecast_time
+    }
+
+    /// 第一固定面の種類を返す。
+    pub fn type_of_first_fixed_surface(&self) -> u8 {
+        self.template4.type_of_first_fixed_surface
+    }
+
+    /// 第一固定面の尺度因子を返す。
+    pub fn scale_factor_of_first_fixed_surface(&self) -> u8 {
+        self.template4.scale_factor_of_first_fixed_surface
+    }
+
+    /// 第一固定面の尺度付きの値を返す。
+    pub fn scaled_value_of_first_fixed_surface(&self) -> u32 {
+        self.template4.scaled_value_of_first_fixed_surface
+    }
+
+    /// 第二固定面の種類を返す。
+    pub fn type_of_second_fixed_surface(&self) -> u8 {
+        self.template4.type_of_second_fixed_surface
+    }
+
+    /// 第二固定面の尺度因子を返す。
+    pub fn scale_factor_of_second_fixed_surface(&self) -> u8 {
+        self.template4.scale_factor_of_second_fixed_surface
+    }
+
+    /// 第二固定面の尺度付きの値を返す。
+    pub fn scaled_value_of_second_fixed_surface(&self) -> u32 {
+        self.template4.scaled_value_of_second_fixed_surface
+    }
+
+    /// 資料作成に用いた関連資料の名称1を返す。
+    pub fn source_document1(&self) -> u8 {
+        self.template4.source_document1
+    }
+
+    /// 資料作成に用いた関連資料の時間（時）1を返す。
+    pub fn hours_from_source_document1(&self) -> u16 {
+        self.template4.hours_from_source_document1
+    }
+
+    /// 資料作成に用いた関連資料の時間（分）1を返す。
+    pub fn minutes_from_source_document1(&self) -> u8 {
+        self.template4.minutes_from_source_document1
+    }
+
+    /// 資料作成に用いた関連資料の名称2を返す。
+    pub fn source_document2(&self) -> u8 {
+        self.template4.source_document2
+    }
+
+    /// 資料作成に用いた関連資料の時間（時）2を返す。
+    pub fn hours_from_source_document2(&self) -> u16 {
+        self.template4.hours_from_source_document2
+    }
+
+    /// 資料作成に用いた関連資料の時間（分）2を返す。
+    pub fn minutes_from_source_document2(&self) -> u8 {
+        self.template4.minutes_from_source_document2
+    }
+}
+
+impl Section4_50008 {
+    /// パラメータカテゴリーを返す。
+    pub fn parameter_category(&self) -> u8 {
+        self.template4.parameter_category
+    }
+
+    /// パラメータ番号を返す。
+    pub fn parameter_number(&self) -> u8 {
+        self.template4.parameter_number
+    }
+
+    /// 作成処理の種類を返す。
+    pub fn type_of_generating_process(&self) -> u8 {
+        self.template4.type_of_generating_process
+    }
+
+    /// 背景作成処理識別符を返す。
+    pub fn background_process(&self) -> u8 {
+        self.template4.background_process
+    }
+
+    /// 予報の作成処理識別符を返す。
+    pub fn generating_process_identifier(&self) -> u8 {
+        self.template4.generating_process_identifier
+    }
+
+    /// 観測資料の参照時刻からの締切時間（時）を返す。
+    pub fn hours_after_data_cutoff(&self) -> u16 {
+        self.template4.hours_after_data_cutoff
+    }
+
+    /// 観測資料の参照時刻からの締切時間（分）を返す。
+    pub fn minutes_after_data_cutoff(&self) -> u8 {
+        self.template4.minutes_after_data_cutoff
+    }
+
+    /// 期間の単位の指示符を返す。
+    pub fn indicator_of_unit_of_time_range(&self) -> u8 {
+        self.template4.indicator_of_unit_of_time_range
+    }
+
+    /// 予報時間を返す。
+    pub fn forecast_time(&self) -> i32 {
+        self.template4.forecast_time
+    }
+
+    /// 第一固定面の種類を返す。
+    pub fn type_of_first_fixed_surface(&self) -> u8 {
+        self.template4.type_of_first_fixed_surface
+    }
+
+    /// 第一固定面の尺度因子を返す。
+    pub fn scale_factor_of_first_fixed_surface(&self) -> u8 {
+        self.template4.scale_factor_of_first_fixed_surface
+    }
+
+    /// 第一固定面の尺度付きの値を返す。
+    pub fn scaled_value_of_first_fixed_surface(&self) -> u32 {
+        self.template4.scaled_value_of_first_fixed_surface
+    }
+
+    /// 第二固定面の種類を返す。
+    pub fn type_of_second_fixed_surface(&self) -> u8 {
+        self.template4.type_of_second_fixed_surface
+    }
+
+    /// 第二固定面の尺度因子を返す。
+    pub fn scale_factor_of_second_fixed_surface(&self) -> u8 {
+        self.template4.scale_factor_of_second_fixed_surface
+    }
+
+    /// 第二固定面の尺度付きの値を返す。
+    pub fn scaled_value_of_second_fixed_surface(&self) -> u32 {
+        self.template4.scaled_value_of_second_fixed_surface
+    }
+
+    /// 全時間間隔の終了時(UTC)を返す。
+    pub fn end_of_all_time_intervals(&self) -> OffsetDateTime {
+        self.template4.end_of_all_time_intervals
+    }
+
+    /// 統計を算出するために使用した時間間隔を記述する期間の仕様の数を返す。
+    pub fn number_of_time_range_specs(&self) -> u8 {
+        self.template4.number_of_time_range_specs
+    }
+
+    /// 統計処理における欠測資料の総数を返す。
+    pub fn number_of_missing_values(&self) -> u32 {
+        self.template4.number_of_missing_values
+    }
+
+    /// 統計処理の種類を返す。
+    pub fn type_of_stat_proc(&self) -> u8 {
+        self.template4.type_of_stat_proc
+    }
+
+    /// 統計処理の時間増分の種類を返す。
+    pub fn type_of_stat_proc_time_increment(&self) -> u8 {
+        self.template4.type_of_stat_proc_time_increment
+    }
+
+    /// 統計処理の時間の単位の指示符を返す。
+    pub fn stat_proc_time_unit(&self) -> u8 {
+        self.template4.stat_proc_time_unit
+    }
+
+    /// 統計処理した時間の長さを返す。
+    pub fn stat_proc_time_length(&self) -> u32 {
+        self.template4.stat_proc_time_length
+    }
+
+    /// 連続的な資料場間の増分に関する時間の単位の指示符を返す。
+    pub fn successive_time_unit(&self) -> u8 {
+        self.template4.successive_time_unit
+    }
+
+    /// 連続的な資料場間の時間の増分を返す。
+    pub fn successive_time_increment(&self) -> u32 {
+        self.template4.successive_time_increment
+    }
+
+    /// レーダー等運用情報その1を返す。
+    pub fn radar_info1(&self) -> u64 {
+        self.template4.radar_info1
+    }
+
+    /// レーダー等運用情報その2を返す。
+    pub fn radar_info2(&self) -> u64 {
+        self.template4.radar_info2
+    }
+
+    /// 雨量計運用情報を返す。
+    pub fn rain_gauge_info(&self) -> u64 {
+        self.template4.rain_gauge_info
+    }
+}
+
+impl Section4_50009 {
+    /// パラメータカテゴリーを返す。
+    pub fn parameter_category(&self) -> u8 {
+        self.template4.parameter_category
+    }
+
+    /// パラメータ番号を返す。
+    pub fn parameter_number(&self) -> u8 {
+        self.template4.parameter_number
+    }
+
+    /// 作成処理の種類を返す。
+    pub fn type_of_generating_process(&self) -> u8 {
+        self.template4.type_of_generating_process
+    }
+
+    /// 背景作成処理識別符を返す。
+    pub fn background_process(&self) -> u8 {
+        self.template4.background_process
+    }
+
+    /// 予報の作成処理識別符を返す。
+    pub fn generating_process_identifier(&self) -> u8 {
+        self.template4.generating_process_identifier
+    }
+
+    /// 観測資料の参照時刻からの締切時間（時）を返す。
+    pub fn hours_after_data_cutoff(&self) -> u16 {
+        self.template4.hours_after_data_cutoff
+    }
+
+    /// 観測資料の参照時刻からの締切時間（分）を返す。
+    pub fn minutes_after_data_cutoff(&self) -> u8 {
+        self.template4.minutes_after_data_cutoff
+    }
+
+    /// 期間の単位の指示符を返す。
+    pub fn indicator_of_unit_of_time_range(&self) -> u8 {
+        self.template4.indicator_of_unit_of_time_range
+    }
+
+    /// 予報時間を返す。
+    pub fn forecast_time(&self) -> i32 {
+        self.template4.forecast_time
+    }
+
+    /// 第一固定面の種類を返す。
+    pub fn type_of_first_fixed_surface(&self) -> u8 {
+        self.template4.type_of_first_fixed_surface
+    }
+
+    /// 第一固定面の尺度因子を返す。
+    pub fn scale_factor_of_first_fixed_surface(&self) -> u8 {
+        self.template4.scale_factor_of_first_fixed_surface
+    }
+
+    /// 第一固定面の尺度付きの値を返す。
+    pub fn scaled_value_of_first_fixed_surface(&self) -> u32 {
+        self.template4.scaled_value_of_first_fixed_surface
+    }
+
+    /// 第二固定面の種類を返す。
+    pub fn type_of_second_fixed_surface(&self) -> u8 {
+        self.template4.type_of_second_fixed_surface
+    }
+
+    /// 第二固定面の尺度因子を返す。
+    pub fn scale_factor_of_second_fixed_surface(&self) -> u8 {
+        self.template4.scale_factor_of_second_fixed_surface
+    }
+
+    /// 第二固定面の尺度付きの値を返す。
+    pub fn scaled_value_of_second_fixed_surface(&self) -> u32 {
+        self.template4.scaled_value_of_second_fixed_surface
+    }
+
+    /// 全時間間隔の終了時(UTC)を返す。
+    pub fn end_of_all_time_intervals(&self) -> OffsetDateTime {
+        self.template4.end_of_all_time_intervals
+    }
+
+    /// 統計を算出するために使用した時間間隔を記述する期間の仕様の数を返す。
+    pub fn number_of_time_range_specs(&self) -> u8 {
+        self.template4.number_of_time_range_specs
+    }
+
+    /// 統計処理における欠測資料の総数を返す。
+    pub fn number_of_missing_values(&self) -> u32 {
+        self.template4.number_of_missing_values
+    }
+
+    /// 統計処理の種類を返す。
+    pub fn type_of_stat_proc(&self) -> u8 {
+        self.template4.type_of_stat_proc
+    }
+
+    /// 統計処理の時間増分の種類を返す。
+    pub fn type_of_stat_proc_time_increment(&self) -> u8 {
+        self.template4.type_of_stat_proc_time_increment
+    }
+
+    /// 統計処理の時間の単位の指示符を返す。
+    pub fn stat_proc_time_unit(&self) -> u8 {
+        self.template4.stat_proc_time_unit
+    }
+
+    /// 統計処理した時間の長さを返す。
+    pub fn stat_proc_time_length(&self) -> u32 {
+        self.template4.stat_proc_time_length
+    }
+
+    /// 連続的な資料場間の増分に関する時間の単位の指示符を返す。
+    pub fn successive_time_unit(&self) -> u8 {
+        self.template4.successive_time_unit
+    }
+
+    /// 連続的な資料場間の時間の増分を返す。
+    pub fn successive_time_increment(&self) -> u32 {
+        self.template4.successive_time_increment
+    }
+
+    /// レーダー等運用情報その1を返す。
+    pub fn radar_info1(&self) -> u64 {
+        self.template4.radar_info1
+    }
+
+    /// レーダー等運用情報その2を返す。
+    pub fn radar_info2(&self) -> u64 {
+        self.template4.radar_info2
+    }
+
+    /// 雨量計運用情報を返す。
+    pub fn rain_gauge_info(&self) -> u64 {
+        self.template4.rain_gauge_info
+    }
+
+    /// メソモデル予想値の結合比率の計算領域数を返す。
+    pub fn number_of_calculation_areas(&self) -> u16 {
+        self.template4.number_of_calculation_areas
+    }
+
+    /// メソモデル予想値の結合比率の尺度因子を返す。
+    pub fn scale_factor_of_combined_ratio(&self) -> u8 {
+        self.template4.scale_factor_of_combined_ratio
+    }
+
+    /// 各領域のメソモデル予想値の結合比率を返す。
+    pub fn combined_ratios_of_forecast_areas(&self) -> &[u16] {
+        &self.template4.combined_ratios_of_forecast_areas
+    }
+}
+
+impl Section5_200u16 {
+    /// 今回の圧縮に用いたレベルの最大値を返す。
+    pub fn max_level_value(&self) -> u16 {
+        self.template5.max_level_value
+    }
+
+    /// データの取り得るレベルの最大値を返す。
+    pub fn number_of_level_values(&self) -> u16 {
+        self.template5.number_of_level_values
+    }
+
+    /// データ代表値の尺度因子を返す。
+    pub fn decimal_scale_factor(&self) -> u8 {
+        self.template5.decimal_scale_factor
+    }
+
+    /// レベルmに対応するデータ代表値を返す。
+    pub fn level_values(&self) -> &[u16] {
+        &self.template5.level_values
+    }
+}
+
+impl Section5_200i16 {
+    /// 今回の圧縮に用いたレベルの最大値を返す。
+    pub fn max_level_value(&self) -> u16 {
+        self.template5.max_level_value
+    }
+
+    /// データの取り得るレベルの最大値を返す。
+    pub fn number_of_level_values(&self) -> u16 {
+        self.template5.number_of_level_values
+    }
+
+    /// データ代表値の尺度因子を返す。
+    pub fn decimal_scale_factor(&self) -> u8 {
+        self.template5.decimal_scale_factor
+    }
+
+    /// レベルmに対応するデータ代表値を返す。
+    pub fn level_values(&self) -> &[i16] {
+        &self.template5.level_values
+    }
+}
+
+impl Section7_200 {
+    /// ランレングス圧縮符号列の開始位置を返す。
+    pub fn run_length_position(&self) -> usize {
+        self.template7.run_length_position
+    }
+
+    /// ランレングス圧縮符号のバイト数を返す。
+    pub fn run_length_bytes(&self) -> usize {
+        self.template7.run_length_bytes
+    }
+}
