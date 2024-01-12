@@ -7,9 +7,7 @@ use super::sections::{
 use super::{FileReader, Grib2ValueIter, ReaderError, ReaderResult, SwiTank};
 
 /// 土壌雨量指数実況値（1kmメッシュ）値リーダー
-///
-/// 土壌雨量指数実況値: Actual Soil Water Index
-pub struct AswiReader<P>
+pub struct PswReader<P>
 where
     P: AsRef<Path>,
 {
@@ -25,7 +23,7 @@ where
     section8: Section8,
 }
 
-impl<P> AswiReader<P>
+impl<P> PswReader<P>
 where
     P: AsRef<Path>,
 {

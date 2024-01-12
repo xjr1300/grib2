@@ -1,20 +1,20 @@
 use std::fs::{File, OpenOptions};
 use std::io::{stdout, BufRead, BufReader, BufWriter, Write};
 
-use grib2::reader::ArfReader;
+use grib2::reader::PrrReader;
 
 #[test]
 #[ignore]
-fn test_arf_reader() {
+fn test_prr_reader() {
     // GRIB2ファイルを読み込みCSVファイルに座標を出力
-    let input = "../resources/arf.bin";
-    let mut reader = ArfReader::new(input).unwrap();
+    let input = "../resources/prr.bin";
+    let mut reader = PrrReader::new(input).unwrap();
     let handle = stdout().lock();
     let mut writer = BufWriter::new(handle);
     reader.debug_info(&mut writer).unwrap();
     writer.flush().unwrap();
 
-    let output = "../resources/arf.csv";
+    let output = "../resources/prr.csv";
     let file = OpenOptions::new()
         .write(true)
         .create(true)
@@ -42,7 +42,7 @@ fn test_arf_reader() {
     println!("number of reading points: {}", number_of_points);
 
     // 検証
-    let expected = "../resources/arf.csv.org";
+    let expected = "../resources/prr.csv.org";
     let mut o_reader = BufReader::new(File::open(output).unwrap());
     let e_reader = BufReader::new(File::open(expected).unwrap());
     for e_line in e_reader.lines() {

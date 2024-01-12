@@ -1,14 +1,14 @@
 use std::fs::{File, OpenOptions};
 use std::io::{stdout, BufWriter, Write};
 
-use grib2::reader::{AswiReader, Grib2ValueIter};
+use grib2::reader::{Grib2ValueIter, PswReader};
 
 #[test]
 #[ignore]
-fn test_aswi_reader() {
+fn test_psw_reader() {
     // GRIB2ファイルを読み込みCSVファイルに座標を出力
-    let input = "../resources/aswi.bin";
-    let mut reader = AswiReader::new(input).unwrap();
+    let input = "../resources/psw.bin";
+    let mut reader = PswReader::new(input).unwrap();
     let handle = stdout().lock();
     let mut writer = BufWriter::new(handle);
     reader.debug_info(&mut writer).unwrap();
@@ -16,7 +16,7 @@ fn test_aswi_reader() {
     let number_of_points = reader.section3().number_of_data_points();
 
     // 土壌雨量指数を出力
-    let output = "../resources/aswi_0.csv";
+    let output = "../resources/psw_0.csv";
     let file = OpenOptions::new()
         .write(true)
         .create(true)
@@ -32,7 +32,7 @@ fn test_aswi_reader() {
     );
 
     // 第一タンクの値を出力
-    let output = "../resources/aswi_1.csv";
+    let output = "../resources/psw_1.csv";
     let file = OpenOptions::new()
         .write(true)
         .create(true)
@@ -48,7 +48,7 @@ fn test_aswi_reader() {
     );
 
     // 第二タンクの値を出力
-    let output = "../resources/aswi_2.csv";
+    let output = "../resources/psw_2.csv";
     let file = OpenOptions::new()
         .write(true)
         .create(true)
