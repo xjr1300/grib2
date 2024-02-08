@@ -5,9 +5,9 @@ use grib2::reader::{FPprReader, ForecastHour6, Grib2ValueIter};
 
 #[test]
 #[ignore]
-fn test_srpf_reader() {
+fn test_fppr_reader() {
     // GRIB2ファイルを読み込みCSVファイルに座標を出力
-    let input = "../resources/srpf.bin";
+    let input = "../resources/fppr.bin";
     let mut reader = FPprReader::new(input).unwrap();
     let handle = stdout().lock();
     let mut writer = BufWriter::new(handle);
@@ -17,7 +17,7 @@ fn test_srpf_reader() {
 
     // 予測値をファイルに出力
     for i in 0..6 {
-        let output = format!("../resources/srpf_{}hours.csv", i + 1);
+        let output = format!("../resources/fppr_{}hours.csv", i + 1);
         let file = OpenOptions::new()
             .write(true)
             .create(true)
