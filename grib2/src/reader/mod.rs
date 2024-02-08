@@ -2,19 +2,19 @@ use std::borrow::Cow;
 use std::fs::File;
 use std::io::BufReader;
 
+pub mod fppr;
 mod lswj;
 mod prr;
 mod psw;
 mod sections;
-pub mod srpf;
 mod swi6f;
 mod value;
 mod value_iter;
 
+pub use fppr::FPprReader;
 pub use lswj::LswjReader;
 pub use prr::PrrReader;
 pub use psw::PswReader;
-pub use srpf::SrpfReader;
 pub use swi6f::Swi6fReader;
 pub use value::Grib2Value;
 pub use value_iter::Grib2ValueIter;
