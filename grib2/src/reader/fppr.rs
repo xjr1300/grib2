@@ -9,9 +9,7 @@ use super::sections::{
 use super::{FileReader, ForecastHour6, Grib2ValueIter, ReaderError, ReaderResult};
 
 /// 1kmメッシュ降水短時間予報リーダー
-///
-/// 降水短時間予報: Short Range Precipitation Forecast
-pub struct SrpfReader<P>
+pub struct FPprReader<P>
 where
     P: AsRef<Path>,
 {
@@ -20,25 +18,25 @@ where
     section1: Section1,
     section2: Section2,
     section3: Section3_0,
-    forecasts: [SrpfSections; 6],
+    forecasts: [FPprSections; 6],
     section8: Section8,
 }
 
-pub struct SrpfSections {
+pub struct FPprSections {
     section4: Section4_50009,
     section5: Section5_200u16,
     section6: Section6,
     section7: Section7_200,
 }
 
-impl SrpfSections {
+impl FPprSections {
     fn from_reader(reader: &mut FileReader) -> ReaderResult<Self> {
         let section4 = Section4_50009::from_reader(reader)?;
         let section5 = Section5_200u16::from_reader(reader)?;
         let section6 = Section6::from_reader(reader)?;
         let section7 = Section7_200::from_reader(reader)?;
 
-        Ok(SrpfSections {
+        Ok(FPprSections {
             section4,
             section5,
             section6,
@@ -58,7 +56,7 @@ macro_rules! impl_forecast_values_iter {
     }
 }
 
-impl<P> SrpfReader<P>
+impl<P> FPprReader<P>
 where
     P: AsRef<Path>,
 {
@@ -70,12 +68,12 @@ where
         let section1 = Section1::from_reader(&mut reader)?;
         let section2 = Section2::from_reader(&mut reader)?;
         let section3 = Section3_0::from_reader(&mut reader)?;
-        let hour1 = SrpfSections::from_reader(&mut reader)?;
-        let hour2 = SrpfSections::from_reader(&mut reader)?;
-        let hour3 = SrpfSections::from_reader(&mut reader)?;
-        let hour4 = SrpfSections::from_reader(&mut reader)?;
-        let hour5 = SrpfSections::from_reader(&mut reader)?;
-        let hour6 = SrpfSections::from_reader(&mut reader)?;
+        let hour1 = FPprSections::from_reader(&mut reader)?;
+        let hour2 = FPprSections::from_reader(&mut reader)?;
+        let hour3 = FPprSections::from_reader(&mut reader)?;
+        let hour4 = FPprSections::from_reader(&mut reader)?;
+        let hour5 = FPprSections::from_reader(&mut reader)?;
+        let hour6 = FPprSections::from_reader(&mut reader)?;
         let section8 = Section8::from_reader(&mut reader)?;
 
         Ok(Self {
@@ -126,7 +124,7 @@ where
     }
 
     // 時間別の降水短時間予報を返す。
-    pub fn forecast(&self, hour: ForecastHour6) -> &SrpfSections {
+    pub fn forecast(&self, hour: ForecastHour6) -> &FPprSections {
         &self.forecasts[hour as usize - 1]
     }
 
@@ -205,7 +203,7 @@ where
     }
 }
 
-impl SrpfSections {
+impl FPprSections {
     /// 第4節:格子点値節を返す。
     ///
     /// # 戻り値

@@ -1,14 +1,14 @@
 use std::fs::{File, OpenOptions};
 use std::io::{stdout, BufWriter, Write};
 
-use grib2::reader::{ForecastHour6, Grib2ValueIter, SrpfReader};
+use grib2::reader::{FPprReader, ForecastHour6, Grib2ValueIter};
 
 #[test]
 #[ignore]
 fn test_srpf_reader() {
     // GRIB2ファイルを読み込みCSVファイルに座標を出力
     let input = "../resources/srpf.bin";
-    let mut reader = SrpfReader::new(input).unwrap();
+    let mut reader = FPprReader::new(input).unwrap();
     let handle = stdout().lock();
     let mut writer = BufWriter::new(handle);
     reader.debug_info(&mut writer).unwrap();

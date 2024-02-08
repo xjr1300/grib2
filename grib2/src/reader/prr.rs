@@ -12,9 +12,7 @@ use super::value_iter::Grib2ValueIter;
 use super::{FileReader, ReaderError, ReaderResult};
 
 /// 1kmメッシュ解析雨量リーダー
-///
-/// 解析雨量: Analysis Rainfall
-pub struct ArfReader<P>
+pub struct PrrReader<P>
 where
     P: AsRef<Path>,
 {
@@ -40,7 +38,7 @@ where
     section8: Section8,
 }
 
-impl<P> ArfReader<P>
+impl<P> PrrReader<P>
 where
     P: AsRef<Path>,
 {
@@ -77,7 +75,7 @@ where
             ));
         }
 
-        Ok(ArfReader {
+        Ok(PrrReader {
             path,
             section0,
             section1,

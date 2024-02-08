@@ -3,12 +3,12 @@ use std::io::{BufWriter, Write};
 
 use gsjp::{Coordinate, Mesh, Mesh3};
 
-use grib2::reader::ArfReader;
+use grib2::reader::PrrReader;
 
 fn main() {
-    let input = "resources/arf.bin";
-    let mut reader = ArfReader::new(input).unwrap();
-    let output = "resources/arf_with_mesh3.csv";
+    let input = "resources/prr.bin";
+    let mut reader = PrrReader::new(input).unwrap();
+    let output = "resources/prr_with_mesh3.csv";
     let file = OpenOptions::new()
         .write(true)
         .create(true)
