@@ -1,14 +1,14 @@
 use std::fs::{File, OpenOptions};
 use std::io::{stdout, BufWriter, Write};
 
-use grib2::reader::{ForecastHour6, Grib2ValueIter, Swi6fReader, SwiTank};
+use grib2::reader::{FPswReader, ForecastHour6, Grib2ValueIter, SwiTank};
 
 #[test]
 #[ignore]
 fn test_swi6f_reader() {
     // GRIB2ファイルを読み込みCSVファイルに座標を出力
     let input = "../resources/swi6f.bin";
-    let mut reader = Swi6fReader::new(input).unwrap();
+    let mut reader = FPswReader::new(input).unwrap();
     let handle = stdout().lock();
     let mut writer = BufWriter::new(handle);
     reader.debug_info(&mut writer).unwrap();
