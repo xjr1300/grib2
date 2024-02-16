@@ -11,8 +11,7 @@ use super::{
 };
 
 /// 土壌雨量指数6時間予想値(1km メッシュ)リーダー
-/// Soil Water Index 6-hour forecast (1km mesh) reader
-pub struct Swi6fReader<P>
+pub struct FPswReader<P>
 where
     P: AsRef<Path>,
 {
@@ -61,7 +60,7 @@ impl Forecast {
     }
 }
 
-impl<P> Swi6fReader<P>
+impl<P> FPswReader<P>
 where
     P: AsRef<Path>,
 {
