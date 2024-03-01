@@ -9,7 +9,7 @@ use super::sections::{
 use super::{FileReader, ForecastHour6, Grib2ValueIter, ReaderError, ReaderResult};
 
 /// 1kmメッシュ降水短時間予報リーダー
-pub struct FPprReader<P>
+pub struct FprrReader<P>
 where
     P: AsRef<Path>,
 {
@@ -56,7 +56,7 @@ macro_rules! impl_forecast_values_iter {
     }
 }
 
-impl<P> FPprReader<P>
+impl<P> FprrReader<P>
 where
     P: AsRef<Path>,
 {
