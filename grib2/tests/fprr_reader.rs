@@ -1,14 +1,14 @@
 use std::fs::{File, OpenOptions};
 use std::io::{stdout, BufWriter, Write};
 
-use grib2::reader::{FPprReader, ForecastHour6, Grib2ValueIter};
+use grib2::reader::{ForecastHour6, FprrReader, Grib2ValueIter};
 
 #[test]
 #[ignore]
-fn test_fppr_reader() {
+fn test_fprr_reader() {
     // GRIB2ファイルを読み込みCSVファイルに座標を出力
-    let input = "../resources/fppr.bin";
-    let mut reader = FPprReader::new(input).unwrap();
+    let input = "../resources/fprr.bin";
+    let mut reader = FprrReader::new(input).unwrap();
     let handle = stdout().lock();
     let mut writer = BufWriter::new(handle);
     reader.debug_info(&mut writer).unwrap();
@@ -17,7 +17,7 @@ fn test_fppr_reader() {
 
     // 予測値をファイルに出力
     for i in 0..6 {
-        let output = format!("../resources/fppr_{}hours.csv", i + 1);
+        let output = format!("../resources/fprr_{}hours.csv", i + 1);
         let file = OpenOptions::new()
             .write(true)
             .create(true)

@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use std::fs::File;
 use std::io::BufReader;
 
-pub mod fppr;
+pub mod fprr;
 mod fpsw;
 mod lswj;
 mod prr;
@@ -11,7 +11,7 @@ mod sections;
 mod value;
 mod value_iter;
 
-pub use fppr::FPprReader;
+pub use fprr::FprrReader;
 pub use fpsw::FPswReader;
 pub use lswj::LswjReader;
 pub use prr::PrrReader;
