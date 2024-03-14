@@ -1409,21 +1409,21 @@ impl TemplateFromReaderWithSize<u16> for Template7_200 {
 }
 
 /// 土壌雨量指数の第4節から第7節
-pub struct SwiSections {
+pub struct PswSections {
     section4: Section4_0,
     section5: Section5_200u16,
     section6: Section6,
     section7: Section7_200,
 }
 
-impl SwiSections {
-    pub(crate) fn from_reader(reader: &mut FileReader) -> ReaderResult<SwiSections> {
+impl PswSections {
+    pub(crate) fn from_reader(reader: &mut FileReader) -> ReaderResult<PswSections> {
         let section4 = Section4_0::from_reader(reader)?;
         let section5 = Section5_200u16::from_reader(reader)?;
         let section6 = Section6::from_reader(reader)?;
         let section7 = Section7_200::from_reader(reader)?;
 
-        Ok(SwiSections {
+        Ok(PswSections {
             section4,
             section5,
             section6,

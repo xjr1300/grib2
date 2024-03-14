@@ -27,7 +27,7 @@ fn test_psw_reader() {
     writeln!(writer, "longitude,latitude,value").unwrap();
     write_values(
         &mut writer,
-        reader.swi_value_iter().unwrap(),
+        reader.all_tanks_value_iter().unwrap(),
         number_of_points,
     );
 

@@ -2,11 +2,11 @@ use std::io::{Seek, SeekFrom};
 use std::{fs::File, path::Path};
 
 use super::sections::{
-    FromReader, Section0, Section1, Section2, Section3_0, Section8, SwiSections,
+    FromReader, PswSections, Section0, Section1, Section2, Section3_0, Section8,
 };
-use super::{FileReader, Grib2ValueIter, ReaderError, ReaderResult, SwiTank};
+use super::{FileReader, Grib2ValueIter, PswTank, ReaderError, ReaderResult};
 
-/// 土壌雨量指数実況値（1kmメッシュ）値リーダー
+/// 土壌雨量指数値リーダー
 pub struct PswReader<P>
 where
     P: AsRef<Path>,
@@ -16,10 +16,10 @@ where
     section1: Section1,
     section2: Section2,
     section3: Section3_0,
-    /// インデックス0: 土壌雨量指数
+    /// インデックス0: 全タンク
     /// インデックス1: 第一タンク
     /// インデックス2: 第二タンク
-    tanks: [SwiSections; 3],
+    tanks: [PswSections; 3],
     section8: Section8,
 }
 
@@ -44,9 +44,9 @@ where
         let section1 = Section1::from_reader(&mut reader)?;
         let section2 = Section2::from_reader(&mut reader)?;
         let section3 = Section3_0::from_reader(&mut reader)?;
-        let swi = SwiSections::from_reader(&mut reader)?;
-        let first_tank = SwiSections::from_reader(&mut reader)?;
-        let second_tank = SwiSections::from_reader(&mut reader)?;
+        let all_tanks = PswSections::from_reader(&mut reader)?;
+        let first_tank = PswSections::from_reader(&mut reader)?;
+        let second_tank = PswSections::from_reader(&mut reader)?;
         let section8 = Section8::from_reader(&mut reader)?;
 
         Ok(Self {
@@ -55,7 +55,7 @@ where
             section1,
             section2,
             section3,
-            tanks: [swi, first_tank, second_tank],
+            tanks: [all_tanks, first_tank, second_tank],
             section8,
         })
     }
@@ -96,13 +96,13 @@ where
         &self.section3
     }
 
-    /// 土壌雨量指数を返す。
+    /// 全タンクを返す。
     ///
     /// # 戻り値
     ///
-    /// 土壌雨量指数を記録した第4節から第7節までの節を返す。
-    pub fn swi_sections(&self) -> &SwiSections {
-        &self.tanks[SwiTank::Swi as usize]
+    /// 全タンクを記録した第4節から第7節までの節を返す。
+    pub fn all_tanks_sections(&self) -> &PswSections {
+        &self.tanks[PswTank::All as usize]
     }
 
     /// 第一タンクを返す。
@@ -110,8 +110,8 @@ where
     /// # 戻り値
     ///
     /// 第一タンクを記録した第4節から第7節までの節を返す。
-    pub fn first_tank_sections(&self) -> &SwiSections {
-        &self.tanks[SwiTank::First as usize]
+    pub fn first_tank_sections(&self) -> &PswSections {
+        &self.tanks[PswTank::First as usize]
     }
 
     /// 第二タンクを返す。
@@ -119,8 +119,8 @@ where
     /// # 戻り値
     ///
     /// 第二タンクを記録した第4節から第7節までの節を返す。
-    pub fn second_tank_sections(&self) -> &SwiSections {
-        &self.tanks[SwiTank::Second as usize]
+    pub fn second_tank_sections(&self) -> &PswSections {
+        &self.tanks[PswTank::Second as usize]
     }
 
     /// 第8節:終端節を返す。
@@ -132,7 +132,7 @@ where
         &self.section8
     }
 
-    fn value_iter(&mut self, tank: SwiTank) -> ReaderResult<Grib2ValueIter<'_, u16>> {
+    fn value_iter(&mut self, tank: PswTank) -> ReaderResult<Grib2ValueIter<'_, u16>> {
         let value_sections = &self.tanks[tank as usize];
         let file = File::open(self.path.as_ref())
             .map_err(|e| ReaderError::NotFount(e.to_string().into()))?;
@@ -160,13 +160,13 @@ where
         ))
     }
 
-    /// 土壌雨量指数を返すイテレーターを返す。
+    /// 全タンクの値を返すイテレーターを返す。
     ///
     /// # 戻り値
     ///
-    /// 土壌雨量指数を返すイテレーター
-    pub fn swi_value_iter(&mut self) -> ReaderResult<Grib2ValueIter<'_, u16>> {
-        self.value_iter(SwiTank::Swi)
+    /// 全タンクの値を返すイテレーター
+    pub fn all_tanks_value_iter(&mut self) -> ReaderResult<Grib2ValueIter<'_, u16>> {
+        self.value_iter(PswTank::All)
     }
 
     /// 第一タンクの値を返すイテレーターを返す。
@@ -175,7 +175,7 @@ where
     ///
     /// 第一タンクの値を返すイテレーター
     pub fn first_tank_value_iter(&mut self) -> ReaderResult<Grib2ValueIter<'_, u16>> {
-        self.value_iter(SwiTank::First)
+        self.value_iter(PswTank::First)
     }
 
     /// 第二タンクの値を返すイテレーターを返す。
@@ -184,7 +184,7 @@ where
     ///
     /// 第二タンクの値を返すイテレーター
     pub fn second_tank_value_iter(&mut self) -> ReaderResult<Grib2ValueIter<'_, u16>> {
-        self.value_iter(SwiTank::Second)
+        self.value_iter(PswTank::Second)
     }
 
     /// 全ての節を出力する。
@@ -200,8 +200,8 @@ where
         writeln!(writer)?;
         self.section3.debug_info(writer)?;
         writeln!(writer)?;
-        writeln!(writer, "土壌雨量指数:")?;
-        self.swi_sections().debug_info(writer)?;
+        writeln!(writer, "全タンク:")?;
+        self.all_tanks_sections().debug_info(writer)?;
         writeln!(writer)?;
         writeln!(writer, "第一タンク:")?;
         self.first_tank_sections().debug_info(writer)?;
