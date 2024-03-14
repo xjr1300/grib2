@@ -3,11 +3,11 @@ use std::io::{Seek, SeekFrom};
 use std::path::Path;
 
 use super::sections::{
-    FromReader, Section0, Section1, Section2, Section3_0, Section8, SwiSections,
+    FromReader, PswSections, Section0, Section1, Section2, Section3_0, Section8,
 };
 use super::{
-    vec_to_fixed_array, FileReader, ForecastHour6, Grib2ValueIter, ReaderError, ReaderResult,
-    SwiTank,
+    vec_to_fixed_array, FileReader, ForecastHour6, Grib2ValueIter, PswTank, ReaderError,
+    ReaderResult,
 };
 
 /// 土壌雨量指数6時間予想値(1km メッシュ)リーダー
@@ -26,14 +26,14 @@ where
 
 /// 予想時間別の土壌雨量指数予想の第4節から第7節までを管理
 pub struct Forecast {
-    tanks: [SwiSections; 3],
+    tanks: [PswSections; 3],
 }
 
 impl Forecast {
     pub(crate) fn from_reader(reader: &mut FileReader) -> ReaderResult<Self> {
-        let swi = SwiSections::from_reader(reader)?;
-        let first_tank = SwiSections::from_reader(reader)?;
-        let second_tank = SwiSections::from_reader(reader)?;
+        let swi = PswSections::from_reader(reader)?;
+        let first_tank = PswSections::from_reader(reader)?;
+        let second_tank = PswSections::from_reader(reader)?;
 
         Ok(Self {
             tanks: [swi, first_tank, second_tank],
@@ -41,7 +41,7 @@ impl Forecast {
     }
 
     // 土壌雨量指数タンク別に第4節から第7節を返す。
-    pub fn tank(&self, tank: SwiTank) -> &SwiSections {
+    pub fn tank(&self, tank: PswTank) -> &PswSections {
         &self.tanks[tank as usize]
     }
 
@@ -50,7 +50,7 @@ impl Forecast {
         W: std::io::Write,
     {
         for i in 0..3usize {
-            let tank: SwiTank = (i as u8).try_into().unwrap();
+            let tank: PswTank = (i as u8).try_into().unwrap();
             writeln!(writer, "{}:", tank)?;
             self.tank(tank).debug_info(writer)?;
             writeln!(writer)?;
@@ -153,7 +153,7 @@ where
     pub fn forecast_value_iter(
         &mut self,
         hour: ForecastHour6,
-        tank: SwiTank,
+        tank: PswTank,
     ) -> ReaderResult<Grib2ValueIter<'_, u16>> {
         let forecast = self.forecast(hour);
         let tank = forecast.tank(tank);
