@@ -8,7 +8,7 @@ use grib2::reader::{Grib2ValueIter, PswReader};
 fn test_psw_reader() {
     // GRIB2ファイルを読み込みCSVファイルに座標を出力
     let input = "../resources/psw.bin";
-    let mut reader = PswReader::new(input).unwrap();
+    let mut reader = PswReader::new(input, true).unwrap();
     let handle = stdout().lock();
     let mut writer = BufWriter::new(handle);
     reader.debug_info(&mut writer).unwrap();

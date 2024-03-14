@@ -173,7 +173,7 @@ pub struct Template3_0 {
     scanning_mode: u8,
 }
 
-#[derive(Debug, Clone, Copy, Getter, SectionDebugInfo)]
+#[derive(Debug, Clone, Copy, Default, Getter, SectionDebugInfo)]
 #[section(number = 4, name = "プロダクト定義節")]
 pub struct Section4<T> {
     #[getter(ret = "val")]
@@ -191,7 +191,7 @@ pub struct Section4<T> {
 }
 
 /// テンプレート4.0
-#[derive(Debug, Clone, Copy, Getter, TemplateDebugInfo)]
+#[derive(Debug, Clone, Copy, Default, Getter, TemplateDebugInfo)]
 pub struct Template4_0 {
     #[getter(ret = "val")]
     #[debug_info(name = "パラメータカテゴリー")]
@@ -1409,21 +1409,34 @@ impl TemplateFromReaderWithSize<u16> for Template7_200 {
 }
 
 /// 土壌雨量指数の第4節から第7節
-pub struct SwiSections {
+pub struct PswSections {
     section4: Section4_0,
     section5: Section5_200u16,
     section6: Section6,
     section7: Section7_200,
 }
 
-impl SwiSections {
-    pub(crate) fn from_reader(reader: &mut FileReader) -> ReaderResult<SwiSections> {
-        let section4 = Section4_0::from_reader(reader)?;
+impl PswSections {
+    pub(crate) fn from_reader(
+        reader: &mut FileReader,
+        should_read_product_def: bool,
+    ) -> ReaderResult<PswSections> {
+        let section4 = if should_read_product_def {
+            Section4_0::from_reader(reader)?
+        } else {
+            // 節の長さ: 4バイト
+            let section_bytes = read_u32(reader, "第4節:節の長さ")? as usize;
+            // 第4節をスキップ
+            reader
+                .seek_relative(section_bytes as i64 - 4)
+                .map_err(|_| ReaderError::ReadError("第4節の読み飛ばしに失敗しました。".into()))?;
+            Section4_0::default()
+        };
         let section5 = Section5_200u16::from_reader(reader)?;
         let section6 = Section6::from_reader(reader)?;
         let section7 = Section7_200::from_reader(reader)?;
 
-        Ok(SwiSections {
+        Ok(PswSections {
             section4,
             section5,
             section6,

@@ -84,34 +84,34 @@ impl TryFrom<u8> for ForecastHour6 {
 
 /// 土壌雨量指数タンク
 #[repr(C)]
-pub enum SwiTank {
-    /// 土壌雨量指数
-    Swi = 0,
+pub enum PswTank {
+    /// 全タンク
+    All = 0,
     /// 第一タンク
     First = 1,
     /// 第二タンク
     Second = 2,
 }
 
-impl std::fmt::Display for SwiTank {
+impl std::fmt::Display for PswTank {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match *self {
-            Self::Swi => write!(f, "土壌雨量指数"),
+            Self::All => write!(f, "全タンク"),
             Self::First => write!(f, "第一タンク"),
             Self::Second => write!(f, "第二タンク"),
         }
     }
 }
 
-impl TryFrom<u8> for SwiTank {
+impl TryFrom<u8> for PswTank {
     type Error = &'static str;
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
-            0 => Ok(Self::Swi),
+            0 => Ok(Self::All),
             1 => Ok(Self::First),
             2 => Ok(Self::Second),
-            _ => Err("SwiTankに変換できる数値は0から2までです。"),
+            _ => Err("PswTankに変換できる数値は0から2までです。"),
         }
     }
 }
