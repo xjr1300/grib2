@@ -1,7 +1,7 @@
 use std::fs::{File, OpenOptions};
 use std::io::{stdout, BufWriter, Write};
 
-use grib2::reader::{FPswReader, ForecastHour6, Grib2ValueIter, SwiTank};
+use grib2::reader::{FPswReader, ForecastHour6, Grib2ValueIter, PswTank};
 
 #[test]
 #[ignore]
@@ -28,7 +28,7 @@ fn test_swi6f_reader() {
             let mut writer = BufWriter::new(file);
             writeln!(writer, "longitude,latitude,value").unwrap();
             let forecast_hour = ForecastHour6::try_from(i + 1).unwrap();
-            let tank = SwiTank::try_from(j).unwrap();
+            let tank = PswTank::try_from(j).unwrap();
             let value_iter = reader.forecast_value_iter(forecast_hour, tank).unwrap();
             write_values(&mut writer, value_iter, number_of_points);
         }
