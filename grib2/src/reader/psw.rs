@@ -111,7 +111,7 @@ where
         &self.section3
     }
 
-    /// 土壌雨量指数を返す。
+    /// 全タンクを返す。
     ///
     /// # 戻り値
     ///
@@ -175,12 +175,12 @@ where
         ))
     }
 
-    /// 土壌雨量指数を返すイテレーターを返す。
+    /// 全タンクの値を返すイテレーターを返す。
     ///
     /// # 戻り値
     ///
-    /// 土壌雨量指数を返すイテレーター
-    pub fn swi_value_iter(&mut self) -> ReaderResult<Grib2ValueIter<'_, u16>> {
+    /// 全タンクの値を返すイテレーター
+    pub fn all_tanks_value_iter(&mut self) -> ReaderResult<Grib2ValueIter<'_, u16>> {
         self.value_iter(PswTank::All)
     }
 
