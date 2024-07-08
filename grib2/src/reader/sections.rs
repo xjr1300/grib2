@@ -602,7 +602,7 @@ pub struct Section8 {
     /// 終端のマーカー
     #[getter(ret = "ref", rty = "&str")]
     #[debug_info(name = "終了マーカー")]
-    end_marker: String,
+    pub end_marker: String,
 }
 
 /// テンプレート番号を検証する文を展開するマクロ

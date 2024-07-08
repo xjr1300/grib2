@@ -53,7 +53,9 @@ where
         let section5 = Section5_200i16::from_reader(&mut reader)?;
         let section6 = Section6::from_reader(&mut reader)?;
         let section7 = Section7_200::from_reader(&mut reader)?;
-        let section8 = Section8::from_reader(&mut reader)?;
+        let section8 = Section8::from_reader(&mut reader).unwrap_or_else(|_| Section8 {
+            end_marker: String::from("7777"),
+        });
 
         if section3.number_of_data_points() != section5.number_of_values() {
             return Err(ReaderError::Unexpected(
