@@ -173,6 +173,15 @@ where
         &self.section3
     }
 
+    /// 第4節から第7節を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 第4節から第7節
+    pub fn judgment(&self, hour: LswjHour) -> &LswjSections {
+        &self.judgments[hour as usize]
+    }
+
     /// 第8節:終端節を返す。
     ///
     /// # 戻り値
