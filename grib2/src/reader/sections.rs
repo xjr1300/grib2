@@ -602,7 +602,7 @@ pub struct Section8 {
     /// 終端のマーカー
     #[getter(ret = "ref", rty = "&str")]
     #[debug_info(name = "終了マーカー")]
-    end_marker: String,
+    pub end_marker: String,
 }
 
 /// テンプレート番号を検証する文を展開するマクロ
@@ -1417,26 +1417,8 @@ pub struct PswSections {
 }
 
 impl PswSections {
-    pub(crate) fn from_reader(
-        reader: &mut FileReader,
-        should_read_product_def: bool,
-    ) -> ReaderResult<PswSections> {
-        let section4 = if should_read_product_def {
-            Section4_0::from_reader(reader)?
-        } else {
-            // 節の長さ: 4バイト
-            let section4 = Section4_0 {
-                section_bytes: read_u32(reader, "第4節:節の長さ")? as usize,
-                ..Default::default()
-            };
-            // 節番号: 1バイト
-            validate_u8(reader, 4, "第4節:節番号")?;
-            // 第4節をスキップ
-            reader
-                .seek_relative(section4.section_bytes as i64 - 5)
-                .map_err(|_| ReaderError::ReadError("第4節の読み飛ばしに失敗しました。".into()))?;
-            section4
-        };
+    pub(crate) fn from_reader(reader: &mut FileReader) -> ReaderResult<PswSections> {
+        let section4 = Section4_0::from_reader(reader)?;
         let section5 = Section5_200u16::from_reader(reader)?;
         let section6 = Section6::from_reader(reader)?;
         let section7 = Section7_200::from_reader(reader)?;

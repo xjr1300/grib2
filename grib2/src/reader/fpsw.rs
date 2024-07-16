@@ -31,9 +31,9 @@ pub struct Forecast {
 
 impl Forecast {
     pub(crate) fn from_reader(reader: &mut FileReader) -> ReaderResult<Self> {
-        let swi = PswSections::from_reader(reader, true)?;
-        let first_tank = PswSections::from_reader(reader, true)?;
-        let second_tank = PswSections::from_reader(reader, true)?;
+        let swi = PswSections::from_reader(reader)?;
+        let first_tank = PswSections::from_reader(reader)?;
+        let second_tank = PswSections::from_reader(reader)?;
 
         Ok(Self {
             tanks: [swi, first_tank, second_tank],

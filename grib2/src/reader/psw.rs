@@ -6,7 +6,7 @@ use super::sections::{
 };
 use super::{FileReader, Grib2ValueIter, PswTank, ReaderError, ReaderResult};
 
-/// 土壌雨量指数ファイルリーダー
+/// 土壌雨量指数値リーダー
 pub struct PswReader<P>
 where
     P: AsRef<Path>,
@@ -20,7 +20,7 @@ where
     section1: Section1,
     section2: Section2,
     section3: Section3_0,
-    /// インデックス0: 土壌雨量指数
+    /// インデックス0: 全タンク
     /// インデックス1: 第一タンク
     /// インデックス2: 第二タンク
     tanks: [PswSections; 3],
@@ -49,9 +49,9 @@ where
         let section1 = Section1::from_reader(&mut reader)?;
         let section2 = Section2::from_reader(&mut reader)?;
         let section3 = Section3_0::from_reader(&mut reader)?;
-        let all_tanks = PswSections::from_reader(&mut reader, should_read_product_def)?;
-        let first_tank = PswSections::from_reader(&mut reader, should_read_product_def)?;
-        let second_tank = PswSections::from_reader(&mut reader, should_read_product_def)?;
+        let all_tanks = PswSections::from_reader(&mut reader)?;
+        let first_tank = PswSections::from_reader(&mut reader)?;
+        let second_tank = PswSections::from_reader(&mut reader)?;
         let section8 = Section8::from_reader(&mut reader)?;
 
         Ok(Self {
@@ -115,7 +115,7 @@ where
     ///
     /// # 戻り値
     ///
-    /// 土壌雨量指数を記録した第4節から第7節までの節を返す。
+    /// 全タンクを記録した第4節から第7節までの節を返す。
     pub fn all_tanks_sections(&self) -> &PswSections {
         &self.tanks[PswTank::All as usize]
     }

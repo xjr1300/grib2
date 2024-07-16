@@ -13,7 +13,7 @@ mod value_iter;
 
 pub use fprr::FprrReader;
 pub use fpsw::FPswReader;
-pub use lswj::LswjReader;
+pub use lswj::{LswjHour, LswjReader};
 pub use prr::PrrReader;
 pub use psw::PswReader;
 pub use value::Grib2Value;

@@ -1,15 +1,13 @@
 use std::io::{Seek, SeekFrom};
 use std::{fs::File, path::Path};
 
-use num_format::{Locale, ToFormattedString};
-
 use super::sections::{
     FromReader, Section0, Section1, Section2, Section3_0, Section4_50000, Section5_200i16,
     Section6, Section7_200, Section8,
 };
 use super::{FileReader, Grib2ValueIter, ReaderError, ReaderResult};
 
-/// 大雨警報（土砂災害）の危険度分布（土砂災害警戒判定メッシュ情報）リーダー
+/// 実況及び3時間先までの土砂災害警戒判定リーダー
 ///
 /// 土砂災害警戒判定: Landslide Warning Judgement
 pub struct LswjReader<P>
@@ -21,11 +19,84 @@ where
     section1: Section1,
     section2: Section2,
     section3: Section3_0,
+    judgments: [LswjSections; 4],
+    section8: Section8,
+}
+
+pub struct LswjSections {
     section4: Section4_50000,
     section5: Section5_200i16,
     section6: Section6,
     section7: Section7_200,
-    section8: Section8,
+}
+
+impl LswjSections {
+    fn from_reader(reader: &mut FileReader) -> ReaderResult<Self> {
+        let section4 = Section4_50000::from_reader(reader)?;
+        let section5 = Section5_200i16::from_reader(reader)?;
+        let section6 = Section6::from_reader(reader)?;
+        let section7 = Section7_200::from_reader(reader)?;
+
+        Ok(Self {
+            section4,
+            section5,
+            section6,
+            section7,
+        })
+    }
+
+    /// 第4節:プロダクト定義節を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 第4節:プロダクト定義節
+    pub fn section4(&self) -> &Section4_50000 {
+        &self.section4
+    }
+
+    /// 第5節:資料表現節を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 第5節:資料表現節
+    pub fn section5(&self) -> &Section5_200i16 {
+        &self.section5
+    }
+
+    /// 第6節:ビットマップ節を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 第6節:ビットマップ節
+    pub fn section6(&self) -> &Section6 {
+        &self.section6
+    }
+
+    /// 第7節:資料節を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 第7節:資料節
+    pub fn section7(&self) -> &Section7_200 {
+        &self.section7
+    }
+
+    /// 第4節から第7節を出力する。
+    pub fn debug_info<W>(&self, writer: &mut W) -> std::io::Result<()>
+    where
+        W: std::io::Write,
+    {
+        self.section4().debug_info(writer)?;
+        writeln!(writer)?;
+        self.section5().debug_info(writer)?;
+        writeln!(writer)?;
+        self.section6().debug_info(writer)?;
+        writeln!(writer)?;
+        self.section7().debug_info(writer)?;
+        writeln!(writer)?;
+
+        Ok(())
+    }
 }
 
 impl<P> LswjReader<P>
@@ -49,21 +120,11 @@ where
         let section1 = Section1::from_reader(&mut reader)?;
         let section2 = Section2::from_reader(&mut reader)?;
         let section3 = Section3_0::from_reader(&mut reader)?;
-        let section4 = Section4_50000::from_reader(&mut reader)?;
-        let section5 = Section5_200i16::from_reader(&mut reader)?;
-        let section6 = Section6::from_reader(&mut reader)?;
-        let section7 = Section7_200::from_reader(&mut reader)?;
+        let actual = LswjSections::from_reader(&mut reader)?;
+        let hour1 = LswjSections::from_reader(&mut reader)?;
+        let hour2 = LswjSections::from_reader(&mut reader)?;
+        let hour3 = LswjSections::from_reader(&mut reader)?;
         let section8 = Section8::from_reader(&mut reader)?;
-
-        if section3.number_of_data_points() != section5.number_of_values() {
-            return Err(ReaderError::Unexpected(
-                format!(
-                    "第3節に記録されている資料点数({})と第5節に記録されている全資料点({})が一致しません。",
-                    section3.number_of_data_points().to_formatted_string(&Locale::ja),
-                    section5.number_of_values().to_formatted_string(&Locale::ja),
-                ).into(),
-            ));
-        }
 
         Ok(LswjReader {
             path,
@@ -71,10 +132,7 @@ where
             section1,
             section2,
             section3,
-            section4,
-            section5,
-            section6,
-            section7,
+            judgments: [actual, hour1, hour2, hour3],
             section8,
         })
     }
@@ -115,42 +173,6 @@ where
         &self.section3
     }
 
-    /// 第4節:プロダクト定義節を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 第4節:プロダクト定義節
-    pub fn section4(&self) -> &Section4_50000 {
-        &self.section4
-    }
-
-    /// 第5節:資料表現節を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 第5節:資料表現節
-    pub fn section5(&self) -> &Section5_200i16 {
-        &self.section5
-    }
-
-    /// 第6節:ビットマップ節を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 第6節:ビットマップ節
-    pub fn section6(&self) -> &Section6 {
-        &self.section6
-    }
-
-    /// 第7節:資料節を返す。
-    ///
-    /// # 戻り値
-    ///
-    /// 第7節:資料節
-    pub fn section7(&self) -> &Section7_200 {
-        &self.section7
-    }
-
     /// 第8節:終端節を返す。
     ///
     /// # 戻り値
@@ -165,28 +187,31 @@ where
     /// # 戻り値
     ///
     /// ランレングス圧縮符号を走査するイテレーター
-    pub fn values(&mut self) -> ReaderResult<Grib2ValueIter<'_, i16>> {
+    pub fn values(&mut self, hour: LswjHour) -> ReaderResult<Grib2ValueIter<'_, i16>> {
+        let judgment = &self.judgments[hour as usize];
         let file = File::open(self.path.as_ref())
             .map_err(|e| ReaderError::NotFount(e.to_string().into()))?;
         let mut reader = FileReader::new(file);
         reader
-            .seek(SeekFrom::Start(self.section7.run_length_position() as u64))
+            .seek(SeekFrom::Start(
+                judgment.section7.run_length_position() as u64
+            ))
             .map_err(|_| {
                 ReaderError::ReadError("ランレングス圧縮符号列のシークに失敗しました。".into())
             })?;
 
         Ok(Grib2ValueIter::new(
             reader,
-            self.section7.run_length_bytes(),
+            judgment.section7.run_length_bytes(),
             self.section3.number_of_data_points(),
             self.section3.lat_of_first_grid_point(),
             self.section3.lon_of_first_grid_point(),
             self.section3.lon_of_last_grid_point(),
             self.section3.j_direction_increment(),
             self.section3.i_direction_increment(),
-            self.section5.bits_per_value() as u16,
-            self.section5.max_level_value(),
-            self.section5.level_values(),
+            judgment.section5.bits_per_value() as u16,
+            judgment.section5.max_level_value(),
+            judgment.section5.level_values(),
         ))
     }
 
@@ -203,17 +228,46 @@ where
         writeln!(writer)?;
         self.section3.debug_info(writer)?;
         writeln!(writer)?;
-        self.section4.debug_info(writer)?;
-        writeln!(writer)?;
-        self.section5.debug_info(writer)?;
-        writeln!(writer)?;
-        self.section6.debug_info(writer)?;
-        writeln!(writer)?;
-        self.section7.debug_info(writer)?;
-        writeln!(writer)?;
+        for i in 0..=3usize {
+            writeln!(writer, "{}", LswjHour::try_from(i).unwrap())?;
+            self.judgments[i].debug_info(writer)?;
+        }
         self.section8.debug_info(writer)?;
         writeln!(writer)?;
 
         Ok(())
+    }
+}
+
+/// 土砂災害警戒判定時間
+pub enum LswjHour {
+    Actual = 0,
+    Hour1 = 1,
+    Hour2 = 2,
+    Hour3 = 3,
+}
+
+impl std::fmt::Display for LswjHour {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Actual => write!(f, "実況"),
+            Self::Hour1 => write!(f, "1時間予想"),
+            Self::Hour2 => write!(f, "2時間予想"),
+            Self::Hour3 => write!(f, "3時間予想"),
+        }
+    }
+}
+
+impl TryFrom<usize> for LswjHour {
+    type Error = &'static str;
+
+    fn try_from(value: usize) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(Self::Actual),
+            1 => Ok(Self::Hour1),
+            2 => Ok(Self::Hour2),
+            3 => Ok(Self::Hour3),
+            _ => Err("can not parse to LswjHour"),
+        }
     }
 }

@@ -5,9 +5,9 @@ use grib2::reader::{FPswReader, ForecastHour6, Grib2ValueIter, PswTank};
 
 #[test]
 #[ignore]
-fn test_swi6f_reader() {
+fn test_fpsw_reader() {
     // GRIB2ファイルを読み込みCSVファイルに座標を出力
-    let input = "../resources/swi6f.bin";
+    let input = "../resources/fpsw6.bin";
     let mut reader = FPswReader::new(input).unwrap();
     let handle = stdout().lock();
     let mut writer = BufWriter::new(handle);
@@ -18,7 +18,7 @@ fn test_swi6f_reader() {
     // 予測値をファイルに出力
     for i in 0..6 {
         for j in 0..3 {
-            let output = format!("../resources/swi6f_hour{}_tank{}.csv", i + 1, j);
+            let output = format!("../resources/fpsw6_hour{}_tank{}.csv", i + 1, j);
             let file = OpenOptions::new()
                 .write(true)
                 .create(true)
