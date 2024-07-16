@@ -1,7 +1,7 @@
 use std::fs::OpenOptions;
 use std::io::{stdout, BufWriter, Write};
 
-use grib2::reader::LswjReader;
+use grib2::reader::{LswjHour, LswjReader};
 
 #[test]
 #[ignore]
@@ -24,7 +24,7 @@ fn test_lswj_reader() {
     let mut writer = BufWriter::new(file);
     writeln!(writer, "longitude,latitude,value").unwrap();
     let mut number_of_read = 0_u32;
-    for value in reader.values().unwrap() {
+    for value in reader.values(LswjHour::Actual).unwrap() {
         let value = value.unwrap();
         if value.value.is_some() {
             writeln!(

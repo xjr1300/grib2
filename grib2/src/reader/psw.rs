@@ -11,7 +11,11 @@ pub struct PswReader<P>
 where
     P: AsRef<Path>,
 {
+    /// ファイルのパス
     path: P,
+    /// 第4節プロダクト定義節読み込みフラグ
+    should_read_product_def: bool,
+
     section0: Section0,
     section1: Section1,
     section2: Section2,
@@ -32,11 +36,12 @@ where
     /// # 引数
     ///
     /// * `path` - GRIB2形式のファイルのパス
+    /// * `should_read_product_def` - 第4節プロダクト定義節読み込みフラグ
     ///
     /// # 戻り値
     ///
     /// 土壌雨量指数実況値リーダー
-    pub fn new(path: P) -> ReaderResult<Self> {
+    pub fn new(path: P, should_read_product_def: bool) -> ReaderResult<Self> {
         let file =
             File::open(path.as_ref()).map_err(|e| ReaderError::NotFount(e.to_string().into()))?;
         let mut reader = FileReader::new(file);
@@ -51,6 +56,7 @@ where
 
         Ok(Self {
             path,
+            should_read_product_def,
             section0,
             section1,
             section2,
@@ -58,6 +64,15 @@ where
             tanks: [all_tanks, first_tank, second_tank],
             section8,
         })
+    }
+
+    /// 第4節プロダクト定義節読み込みフラグを返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 第4節プロダクト定義節を読み込む場合はtrue、それ以外はfalse。
+    pub fn should_read_product_def(&self) -> bool {
+        self.should_read_product_def
     }
 
     /// 第0節:指示節を返す。

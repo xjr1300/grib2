@@ -173,7 +173,7 @@ pub struct Template3_0 {
     scanning_mode: u8,
 }
 
-#[derive(Debug, Clone, Copy, Getter, SectionDebugInfo)]
+#[derive(Debug, Clone, Copy, Default, Getter, SectionDebugInfo)]
 #[section(number = 4, name = "プロダクト定義節")]
 pub struct Section4<T> {
     #[getter(ret = "val")]
@@ -191,7 +191,7 @@ pub struct Section4<T> {
 }
 
 /// テンプレート4.0
-#[derive(Debug, Clone, Copy, Getter, TemplateDebugInfo)]
+#[derive(Debug, Clone, Copy, Default, Getter, TemplateDebugInfo)]
 pub struct Template4_0 {
     #[getter(ret = "val")]
     #[debug_info(name = "パラメータカテゴリー")]
@@ -602,7 +602,7 @@ pub struct Section8 {
     /// 終端のマーカー
     #[getter(ret = "ref", rty = "&str")]
     #[debug_info(name = "終了マーカー")]
-    end_marker: String,
+    pub end_marker: String,
 }
 
 /// テンプレート番号を検証する文を展開するマクロ
