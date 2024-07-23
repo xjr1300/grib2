@@ -249,6 +249,7 @@ where
 }
 
 /// 土砂災害警戒判定時間
+#[derive(Debug, Clone, Copy)]
 pub enum LswjHour {
     Actual = 0,
     Hour1 = 1,
